@@ -76,7 +76,7 @@ def download(downloadedPath,submissionURL):
 #Authenticate via praw.ini file, look at praw documentation for more info
 def authenticate():
     print('Authenticating...\n')
-    reddit = praw.Reddit('vreddit', user_agent = 'vreddit')
+    reddit = praw.Reddit('vreddit', user_agent = 'vreddit_bot')
     print('Authenticated as {}\n'.format(reddit.user.me()))
     return reddit
 
