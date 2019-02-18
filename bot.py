@@ -30,10 +30,9 @@ display.start()
 #GLOBAL VARIABLES
 npSubs = 'furry_irl', 'pcmasterrace'
 gifSubs = 'gifsthatkeepongiving'
-donate = 'https://www.reddit.com/r/vreddit_bot/wiki/index'
+#Default path
 botPath = '/home/pi/bots/vreddit/'
 format = '.mp4'
-commentedPath = botPath + 'commented.txt'
 blacklistSubs = ['The_Donald']
 blacklistUsers = ['cyXie', 'airboy1021', 'null']
 
