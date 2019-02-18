@@ -29,7 +29,6 @@ display.start()
 
 #GLOBAL VARIABLES
 npSubs = 'furry_irl', 'pcmasterrace'
-gifSubs = 'gifsthatkeepongiving'
 #Default path
 botPath = '/home/pi/bots/vreddit/'
 format = '.mp4'
