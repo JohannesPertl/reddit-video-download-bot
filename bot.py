@@ -19,7 +19,6 @@ import pomf
 import requests
 from praw.models import Comment
 from praw.models import Message
-import db
 
 
 # Constants
