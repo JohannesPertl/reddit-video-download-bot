@@ -1,6 +1,6 @@
 # !/usr/bin/env python3
 
-# Reddit Bot that provides downloadable links for v.redd.it videos (Audio)
+# Reddit Bot that provides downloadable links for v.redd.it videos
 
 
 import praw
@@ -19,17 +19,25 @@ import pomf
 import requests
 from praw.models import Comment
 from praw.models import Message
+import db
 
 
 # Constants
-BOT_NAME = "u/vreddit_bot"
+BOT_NAME = "u/vredditDownloader"
+NO_FOOTER_SUBS = 'furry_irl', 'pcmasterrace', 'bakchodi'
 DATA_PATH = '/home/pi/bots/vreddit/data/'
 VIDEO_FORMAT = '.mp4'
 COMMENTED_PATH = DATA_PATH + 'commented.txt'
+BLACKLIST_SUBS = ["THE_Donald"]
 BLACKLIST_USERS = ['null', 'AutoModerator']
-ANNOUNCEMENT = "\n\nUse your mobile browser if your app has problems opening my links."
-FOOTER = ("  \n ***  \n ^I\'m&#32;a&#32;Bot&#32;*bleep*&#32;*bloop*&#32;|&#32;[**Contact&#32;Developer**](https://np.reddit.com/message/compose?to=/u/Synapsensalat)&#32;|&#32;[**Info**](https://np.reddit.com/r/vredditDownloader/comments/9h41sx/info)&#32;|&#32;[**Donate**](https://np.reddit.com/r/vredditDownloader/wiki/index)")
-INBOX_LIMIT = 25
+ANNOUNCEMENT_MOBILE = "\n\nUse your mobile browser if your app has problems opening my links."
+ANNOUNCEMENT_UPVOTE = "\n\nPlease upvote me so I can reply faster (Reddit limits new accounts)."
+HEADER = "^I\'m&#32;a&#32;Bot&#32;*bleep*&#32;*bloop*"
+INFO = "[**Info**](https://www.reddit.com/r/VredditDownloader/comments/b61y4i/info)"
+CONTACT = "[**Contact&#32;Developer**](https://np.reddit.com/message/compose?to=/u/Synapsensalat)"
+DONATE = "[**Contribute**](https://np.reddit.com/r/vredditdownloader/wiki/index)"
+FOOTER = "  \n ***  \n " + HEADER + "&#32;|&#32;" + INFO + "&#32;|&#32;" + CONTACT + "&#32;|&#32;" + DONATE
+INBOX_LIMIT = 10
 RATELIMIT = 2000000
 MAX_FILESIZE = int('200000000')
 
@@ -49,11 +57,14 @@ def main():
                 continue
             elif match_type == "comment":
                 submission = item.submission
-            else:
+                announcement = ANNOUNCEMENT_UPVOTE
+            else:  # match_type is message
                 submission = get_real_reddit_submission(reddit, match_type)
+                announcement = ANNOUNCEMENT_MOBILE
 
-            if "v.redd.it" not in submission.url:
+            if "v.redd.it" not in submission.url or str(submission.subreddit) in BLACKLIST_SUBS:
                 continue
+
 
             # Get media and audio URL
             media_url = create_media_url(submission, reddit)
@@ -66,7 +77,6 @@ def main():
             audio_url = media_url.rpartition('/')[0] + '/audio'
             reply = reply_no_audio
             header = "#Downloadable link:\n\n"
-            
             if media_url == submission.url or has_audio(audio_url):
                 if media_url == submission.url:
                     reply_audio_only = ""
@@ -81,18 +91,22 @@ def main():
                 if uploaded_url:
                     # Create log file with uploaded link, named after the submission ID
                     create_uploaded_log(upload_path, uploaded_url)
+                    if "vredd.it" in uploaded_url:
+                        video_with_sound = "* [**Video with sound via https://vredd.it**]("
+                    else:
+                        video_with_sound = "* [**Video with sound**]("
                     try:
-                        reply_audio = "* [**Video with sound**](" + uploaded_url + ")"
+                        reply_audio = video_with_sound + uploaded_url + ")"
                         reply = reply_audio + '\n\n' + reply_no_audio + '\n\n' + reply_audio_only
                         header = "#Downloadable links:\n\n"
                     except Exception as e:
                         print(e)
 
-            reply = header + reply + ANNOUNCEMENT
+            reply = header + reply + announcement
 
             reply_to_user(item, reply, reddit, author)
 
-        time.sleep(2)
+            time.sleep(2)
 
 
 def upload_pomf(file_path, site):
@@ -111,10 +125,10 @@ def upload_pomf(file_path, site):
 
 
 def download(download_url, download_path):
-
     try:
         ydl_opts = {
             'outtmpl': download_path,
+            # 'format': 'bestvideo',        #uncomment for video without audio only, see youtube-dl documentation
             'max_filesize': MAX_FILESIZE,
             'ratelimit': RATELIMIT,
         }
@@ -126,8 +140,8 @@ def download(download_url, download_path):
         print('ERROR: Downloading failed.')
         print(e)
         return ""
-    
-    
+
+
 # Authenticate via praw.ini file, look at praw documentation for more info
 def authenticate():
     print('Authenticating...\n')
@@ -185,7 +199,7 @@ def has_audio(url):
     except:
         return False
 
-
+    
 def create_uploaded_log(upload_path, uploaded_url):
     try:
         print('Creating txt file.')
@@ -198,9 +212,13 @@ def create_uploaded_log(upload_path, uploaded_url):
 
 
 def reply_to_user(item, reply, reddit, user):
+    if item.subreddit in NO_FOOTER_SUBS:
+        footer = ""
+    else:
+        footer = FOOTER
     print('Replying... \n')
     try:
-        item.reply(reply + FOOTER)
+        item.reply(reply + footer)
         item.mark_read()
 
     # Send PM if replying went wrong (Should only happen if the bot is banned)
@@ -209,7 +227,7 @@ def reply_to_user(item, reply, reddit, user):
         try:
             pm = reply + FOOTER
             subject = "I couldn't reply to your comment so you get a PM instead :)"
-            print('Can\'t comment, probably banned. Replying per PM.')
+            print('Can\'t comment. Replying per PM.')
             reddit.redditor(user).message(subject, pm)
             item.mark_read()
         except Exception as f:
@@ -245,9 +263,12 @@ def create_media_url(submission, reddit):
 
 
 def get_real_reddit_submission(reddit, url):
-    link = re.sub('DASH.*', '', url)
-    s = reddit.submission(url=requests.get(link).url)
-    return s
+    try:
+        link = re.sub('DASH.*', '', url)
+        return reddit.submission(url=requests.get(link).url)
+    except Exception as e:
+        return ""
+        print(e)
 
 
 def type_of_item(item):
@@ -266,7 +287,6 @@ def type_of_item(item):
 
 
 def uploaded_log_exists(upload_path):
-
     if not os.path.exists(upload_path):
         return ""
 
