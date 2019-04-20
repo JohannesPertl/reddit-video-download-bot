@@ -24,10 +24,11 @@ from praw.models import Message
 # Constants
 BOT_NAME = "u/vredditDownloader"
 NO_FOOTER_SUBS = 'furry_irl', 'pcmasterrace', 'bakchodi'
+SHADOWBANNED_SUBS = 'funny'
 DATA_PATH = '/home/pi/bots/vreddit/data/'
 VIDEO_FORMAT = '.mp4'
 COMMENTED_PATH = DATA_PATH + 'commented.txt'
-BLACKLIST_SUBS = ["THE_Donald"]
+BLACKLIST_SUBS = ["The_Donald"]
 BLACKLIST_USERS = ['null', 'AutoModerator']
 ANNOUNCEMENT_MOBILE = "\n\nUse your mobile browser if your app has problems opening my links."
 ANNOUNCEMENT_UPVOTE = "\n\nPlease upvote me so I can reply faster (Reddit limits new accounts)."
@@ -35,7 +36,7 @@ HEADER = "^I\'m&#32;a&#32;Bot&#32;*bleep*&#32;*bloop*"
 INFO = "[**Info**](https://www.reddit.com/r/VredditDownloader/comments/b61y4i/info)"
 CONTACT = "[**Contact&#32;Developer**](https://np.reddit.com/message/compose?to=/u/Synapsensalat)"
 DONATE = "[**Contribute**](https://np.reddit.com/r/vredditdownloader/wiki/index)"
-FOOTER = "  \n ***  \n " + HEADER + "&#32;|&#32;" + INFO + "&#32;|&#32;" + CONTACT + "&#32;|&#32;" + DONATE
+FOOTER = "\n\n&nbsp;\n ***  \n ^" + INFO + "&#32;|&#32;" + CONTACT + "&#32;|&#32;" + DONATE
 INBOX_LIMIT = 10
 RATELIMIT = 2000000
 MAX_FILESIZE = int('200000000')
@@ -61,9 +62,8 @@ def main():
                 submission = get_real_reddit_submission(reddit, match_type)
                 announcement = ANNOUNCEMENT_MOBILE
 
-            if "v.redd.it" not in submission.url or str(submission.subreddit) in BLACKLIST_SUBS:
+            if not submission or "v.redd.it" not in str(submission.url) or str(submission.subreddit) in BLACKLIST_SUBS:
                 continue
-
 
             # Get media and audio URL
             media_url = create_media_url(submission, reddit)
@@ -75,7 +75,7 @@ def main():
 
             audio_url = media_url.rpartition('/')[0] + '/audio'
             reply = reply_no_audio
-            header = "#Downloadable link:\n\n"
+
             if media_url == submission.url or has_audio(audio_url):
                 if media_url == submission.url:
                     reply_audio_only = ""
@@ -91,36 +91,33 @@ def main():
                     # Create log file with uploaded link, named after the submission ID
                     create_uploaded_log(upload_path, uploaded_url)
                     if "vredd.it" in uploaded_url:
-                        video_with_sound = "* [**Video with sound via https://vredd.it**]("
+                        video_with_sound = "* [**Video with sound** via https://vredd.it]("
                     else:
                         video_with_sound = "* [**Video with sound**]("
                     try:
                         reply_audio = video_with_sound + uploaded_url + ")"
                         reply = reply_audio + '\n\n' + reply_no_audio + '\n\n' + reply_audio_only
-                        header = "#Downloadable links:\n\n"
                     except Exception as e:
                         print(e)
 
-            reply = header + reply + announcement
-
             reply_to_user(item, reply, reddit, author)
+
 
             time.sleep(2)
 
 
-def upload_pomf(file_path, site):
-    if site == 'catbox':
+def upload_catbox(file_path):
+    try:
         files = {
             'reqtype': (None, 'fileupload'),
             'fileToUpload': (file_path, open(file_path, 'rb')),
         }
         response = requests.post('https://catbox.moe/user/api.php', files=files)
         return response.text
-
-    elif site == 'mixtape':
-        host = pomf.get_host('mixtape')
-        ret = host.upload(open(file_path, 'rb'))
-        return ret['url']
+    except Exception as e:
+        print(e)
+        print("Uploading failed.")
+        return ""
 
 
 def download(download_url, download_path):
@@ -198,7 +195,7 @@ def has_audio(url):
     except:
         return False
 
-    
+
 def create_uploaded_log(upload_path, uploaded_url):
     try:
         print('Creating txt file.')
@@ -210,27 +207,34 @@ def create_uploaded_log(upload_path, uploaded_url):
         print("ERROR: Can't create txt file.")
 
 
+def reply_per_pm(item, reply, reddit, user):
+    pm = reply + FOOTER
+    subject = "I couldn't reply to your comment so you get a PM instead :)"
+    print('Can\'t comment. Replying per PM.')
+    reddit.redditor(user).message(subject, pm)
+    item.mark_read()
+
+
 def reply_to_user(item, reply, reddit, user):
-    if item.subreddit in NO_FOOTER_SUBS:
+    if str(item.subreddit) in NO_FOOTER_SUBS:
         footer = ""
     else:
         footer = FOOTER
     print('Replying... \n')
-    try:
-        item.reply(reply + footer)
-        item.mark_read()
-
-    # Send PM if replying went wrong (Should only happen if the bot is banned)
-    except Exception as e:
-        print(e)
+    if str(item.subreddit) in SHADOWBANNED_SUBS:
+        reply_per_pm(item, reply, reddit, user)
+    else:
         try:
-            pm = reply + FOOTER
-            subject = "I couldn't reply to your comment so you get a PM instead :)"
-            print('Can\'t comment. Replying per PM.')
-            reddit.redditor(user).message(subject, pm)
+            item.reply(reply + footer)
             item.mark_read()
-        except Exception as f:
-            print(f)
+
+        # Send PM if replying went wrong (Should only happen if the bot is banned)
+        except Exception as e:
+            print(e)
+            try:
+                reply_per_pm(item, reply, reddit, user)
+            except Exception as f:
+                print(f)
 
 
 def is_url_valid(url):
@@ -305,11 +309,13 @@ def uploaded_log_exists(upload_path):
 
 def upload(media_url, download_url, download_path, upload_path):
     # Check if already uploaded before
+    print("Check uploaded log")
     uploaded_url = uploaded_log_exists(upload_path)
     if uploaded_url:
         return uploaded_url
 
     try:
+        print("Uploading via vredd.it")
         uploaded_url = upload_via_vreddit(media_url)
         # Sometimes vredd.it returns invalid url
         if is_url_valid(uploaded_url):
@@ -319,22 +325,11 @@ def upload(media_url, download_url, download_path, upload_path):
         print(e)
 
     print("Couldn't upload to https://vredd.it, downloading..")
-    try:
-        download_path = download(download_url, download_path)
-    except:
-        return ""
+    download_path = download(download_url, download_path)
 
-    try:
-        uploaded_url = upload_pomf(download_path, 'catbox')
-    except:
-        try:
-            uploaded_url = upload_pomf(download_path, 'mixtape')
-        except Exception as e:
-            print(e)
-            print("Couldn't upload")
-            return ""
-
-    os.remove(download_path)
+    uploaded_url = upload_catbox(download_path)
+    if uploaded_url:
+        os.remove(download_path)
     return uploaded_url
 
 
