@@ -34,7 +34,7 @@ ANNOUNCEMENT_MOBILE = "\n\nUse your mobile browser if your app has problems open
 ANNOUNCEMENT_UPVOTE = "\n\nPlease upvote me so I can reply faster (Reddit limits new accounts)."
 HEADER = "^I\'m&#32;a&#32;Bot&#32;*bleep*&#32;*bloop*"
 INFO = "[**Info**](https://www.reddit.com/r/VredditDownloader/comments/b61y4i/info)"
-CONTACT = "[**Contact&#32;Developer**](https://np.reddit.com/message/compose?to=/u/Synapsensalat)"
+CONTACT = "[**Contact&#32;Developer**](https://np.reddit.com/message/compose?to=/u/Dev-Joe)"
 DONATE = "[**Contribute**](https://np.reddit.com/r/vredditdownloader/wiki/index)"
 FOOTER = "\n\n&nbsp;\n ***  \n ^" + INFO + "&#32;|&#32;" + CONTACT + "&#32;|&#32;" + DONATE
 INBOX_LIMIT = 10
