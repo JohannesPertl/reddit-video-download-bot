@@ -176,15 +176,6 @@ def upload_via_vreddit(url):
     return uploaded_url
 
 
-def check_url_valid(url):
-    try:
-        req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-        urllib.request.urlopen(req, cafile=certifi.where())
-        return True
-    except:
-        return False
-
-
 def has_audio(url):
     # Workaround to check if v.redd.it link has audio
     try:
@@ -238,8 +229,8 @@ def reply_to_user(item, reply, reddit, user):
 
 
 def is_url_valid(url):
-    req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
     try:
+        req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
         urllib.request.urlopen(req, cafile=certifi.where())
     except Exception as e:
         return False
