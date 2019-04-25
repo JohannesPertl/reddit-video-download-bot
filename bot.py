@@ -105,7 +105,7 @@ def main():
 
             time.sleep(2)
 
-
+# Upload via catbox.moe
 def upload_catbox(file_path):
     try:
         files = {
@@ -175,9 +175,8 @@ def upload_via_vreddit(url):
     driver.quit()
     return uploaded_url
 
-
+# check if v.redd.it link has audio 
 def has_audio(url):
-    # Workaround to check if v.redd.it link has audio
     try:
         req = urllib.request.Request(url)
         resp = urllib.request.urlopen(req)
@@ -186,7 +185,7 @@ def has_audio(url):
     except:
         return False
 
-
+# Create .txt file that contains uploaded url
 def create_uploaded_log(upload_path, uploaded_url):
     try:
         print('Creating txt file.')
@@ -197,7 +196,7 @@ def create_uploaded_log(upload_path, uploaded_url):
         print(e)
         print("ERROR: Can't create txt file.")
 
-
+     
 def reply_per_pm(item, reply, reddit, user):
     pm = reply + FOOTER
     subject = "I couldn't reply to your comment so you get a PM instead :)"
@@ -205,7 +204,7 @@ def reply_per_pm(item, reply, reddit, user):
     reddit.redditor(user).message(subject, pm)
     item.mark_read()
 
-
+# Reply per comment
 def reply_to_user(item, reply, reddit, user):
     if str(item.subreddit) in NO_FOOTER_SUBS:
         footer = ""
@@ -237,7 +236,7 @@ def is_url_valid(url):
     else:
         return True
 
-
+# Read video url from reddit submission
 def create_media_url(submission, reddit):
     media_url = "False"
     try:
@@ -264,7 +263,7 @@ def get_real_reddit_submission(reddit, url):
         return ""
         print(e)
 
-
+# Check if item to reply to is comment or private message
 def type_of_item(item):
     body = str(item.body)
     match_text = re.search(r"(?i)" + BOT_NAME, body)
@@ -279,7 +278,7 @@ def type_of_item(item):
 
     return ""
 
-
+# Check if video has been uploaded before
 def uploaded_log_exists(upload_path):
     if not os.path.exists(upload_path):
         return ""
