@@ -23,7 +23,7 @@ from praw.models import Message
 
 # Constants
 BOT_NAME = "u/vredditDownloader"
-NO_FOOTER_SUBS = 'furry_irl', 'pcmasterrace', 'bakchodi'
+NO_FOOTER_SUBS = 'furry_irl', 'pcmasterrace', 'bakchodi', 'pakistan'
 SHADOWBANNED_SUBS = 'funny'
 DATA_PATH = '/home/pi/bots/vreddit/data/'
 VIDEO_FORMAT = '.mp4'
