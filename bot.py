@@ -31,7 +31,7 @@ COMMENTED_PATH = DATA_PATH + 'commented.txt'
 BLACKLIST_SUBS = ["The_Donald"]
 BLACKLIST_USERS = ['null', 'AutoModerator']
 ANNOUNCEMENT_MOBILE = "\n\nUse your mobile browser if your app has problems opening my links."
-ANNOUNCEMENT_UPVOTE = "\n\nPlease upvote me so I can reply faster (Reddit limits new accounts)."
+ANNOUNCEMENT_PM = "\n\nI also work with links sent by PM."
 HEADER = "^I\'m&#32;a&#32;Bot&#32;*bleep*&#32;*bloop*"
 INFO = "[**Info**](https://np.reddit.com/r/VredditDownloader/comments/b61y4i/info)"
 CONTACT = "[**Contact&#32;Developer**](https://np.reddit.com/message/compose?to=/u/Dev-Joe)"
@@ -57,10 +57,9 @@ def main():
                 continue
             elif match_type == "comment":
                 submission = item.submission
-                announcement = ANNOUNCEMENT_UPVOTE
+                announcement = ANNOUNCEMENT_PM
             else:  # match_type is message
                 submission = get_real_reddit_submission(reddit, match_type)
-                announcement = ANNOUNCEMENT_MOBILE
 
             if not submission or "v.redd.it" not in str(submission.url) or str(submission.subreddit) in BLACKLIST_SUBS:
                 continue
@@ -99,7 +98,7 @@ def main():
                         reply = reply_audio + '\n\n' + reply_no_audio + '\n\n' + reply_audio_only
                     except Exception as e:
                         print(e)
-
+            reply = reply + ANNOUNCEMENT_PM
             reply_to_user(item, reply, reddit, author)
 
 
