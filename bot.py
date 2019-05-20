@@ -24,7 +24,7 @@ from praw.models import Message
 # Constants
 BOT_NAME = "u/vredditDownloader"
 NO_FOOTER_SUBS = 'furry_irl', 'pcmasterrace', 'bakchodi', 'pakistan'
-SHADOWBANNED_SUBS = 'funny'
+PM_SUBS = ['funny', 'mademesmile', 'Rainbow6']
 DATA_PATH = '/home/pi/bots/vreddit/data/'
 VIDEO_FORMAT = '.mp4'
 COMMENTED_PATH = DATA_PATH + 'commented.txt'
@@ -60,8 +60,9 @@ def main():
                 announcement = ANNOUNCEMENT_PM
             else:  # match_type is message
                 submission = get_real_reddit_submission(reddit, match_type)
-
-            if not submission or "v.redd.it" not in str(submission.url) or str(submission.subreddit) in BLACKLIST_SUBS:
+            
+            # Skipping
+            if not submission or "v.redd.it" not in str(submission.url) or str(submission.subreddit) in BLACKLIST_SUBS or author in BLACKLIST_USERS:
                 continue
 
             # Get media and audio URL
@@ -210,7 +211,7 @@ def reply_to_user(item, reply, reddit, user):
     else:
         footer = FOOTER
     print('Replying... \n')
-    if str(item.subreddit) in SHADOWBANNED_SUBS:
+    if str(item.subreddit) in PM_SUBS:
         reply_per_pm(item, reply, reddit, user)
     else:
         try:
