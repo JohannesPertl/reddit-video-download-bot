@@ -86,7 +86,7 @@ def main():
                 upload_path = DATA_PATH + 'uploaded/' + str(submission.id) + '.txt'
 
                 # Upload
-                uploaded_url = upload(media_url, submission.url, download_path, upload_path)
+                uploaded_url = upload(media_url, submission, download_path, upload_path)
                 if uploaded_url:
                     # Create log file with uploaded link, named after the submission ID
                     create_uploaded_log(upload_path, uploaded_url)
@@ -99,6 +99,8 @@ def main():
                         reply = reply_audio + '\n\n' + reply_no_audio + '\n\n' + reply_audio_only
                     except Exception as e:
                         print(e)
+                else:
+                    reply = "Sry, I can only provide a soundless video at the moment. Please try again later. \n\n" + reply_no_audio
             reply = reply + ANNOUNCEMENT_PM
             reply_to_user(item, reply, reddit, author)
 
@@ -146,7 +148,7 @@ def authenticate():
     return reddit
 
 
-# Upload Video via vredd.it
+# Upload Video via https://vredd.it
 def upload_via_vreddit(url):
     options = Options()
     options.add_argument('--headless')
@@ -172,6 +174,40 @@ def upload_via_vreddit(url):
             counter += 1
             continue
     uploaded_url = driver.find_element_by_class_name('btn').get_attribute('href')
+    driver.quit()
+    return uploaded_url
+
+
+# Upload Video via https://ripsave
+def upload_via_ripsave(url):
+    options = Options()
+    options.add_argument('--headless')
+    options.add_argument('--no-sandbox')
+    options.add_argument('--disable-gpu')
+    driver = webdriver.Chrome(chrome_options=options)
+    webpage_url = 'https://ripsave.com/reddit-video-downloader'
+    driver.get(webpage_url)
+
+    url_box = driver.find_element_by_name('video')
+    url_box.send_keys(url)
+
+    login_button = driver.find_element_by_id('btnGetvideo')
+    login_button.click()
+
+    counter = 0
+    found_url = False
+    while counter < 100:
+        try:
+            driver.find_element_by_xpath("//*[text()='Your video is ready to download']")
+            found_url = True
+            break
+        except:
+            counter += 1
+            continue
+    if found_url:
+        uploaded_url = driver.current_url
+    else:
+        uploaded_url = ""
     driver.quit()
     return uploaded_url
 
@@ -297,7 +333,7 @@ def uploaded_log_exists(upload_path):
         return ""
 
 
-def upload(media_url, download_url, download_path, upload_path):
+def upload(media_url, submission, download_path, upload_path):
     # Check if already uploaded before
     print("Check uploaded log")
     uploaded_url = uploaded_log_exists(upload_path)
@@ -310,17 +346,28 @@ def upload(media_url, download_url, download_path, upload_path):
         # Sometimes vredd.it returns invalid url
         if is_url_valid(uploaded_url):
             return uploaded_url
-
     except Exception as e:
         print(e)
 
-    print("Couldn't upload to https://vredd.it, downloading..")
-    download_path = download(download_url, download_path)
+    try:
+        print("Uploading via Ripsave")
+        permalink = "https://www.reddit.com" + submission.permalink
+        uploaded_url = upload_via_ripsave(permalink)
+        if is_url_valid(uploaded_url):
+            return uploaded_url
+    except Exception as e:
+        print(e)
 
+    print("Downloading..")
+    download_path = download(submission.url, download_path)
+    
+    print("Uploading to catbox.moe")
     uploaded_url = upload_catbox(download_path)
     if uploaded_url:
         os.remove(download_path)
     return uploaded_url
+
+    return ""
 
 
 if __name__ == '__main__':
