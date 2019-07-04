@@ -41,6 +41,9 @@ INBOX_LIMIT = 10
 RATELIMIT = 2000000
 MAX_FILESIZE = int('200000000')
 
+# Determines if videos without sound get uploaded to external site or linked via direct v.redd.it link
+ALWAYS_UPLOAD = True
+
 
 def main():
     reddit = authenticate()
@@ -60,9 +63,14 @@ def main():
                 announcement = ANNOUNCEMENT_PM
             else:  # match_type is message
                 submission = get_real_reddit_submission(reddit, match_type)
-            
-            # Skipping
-            if not submission or "v.redd.it" not in str(submission.url) or str(submission.subreddit) in BLACKLIST_SUBS or author in BLACKLIST_USERS:
+                announcement = ""
+
+            try:
+                if not submission or "v.redd.it" not in str(submission.url) or str(
+                        submission.subreddit) in BLACKLIST_SUBS or author in BLACKLIST_USERS:
+                    continue
+            except Exception as e:
+                print(e)
                 continue
 
             # Get media and audio URL
@@ -71,16 +79,17 @@ def main():
                 media_url = submission.url
                 reply_no_audio = ""
             else:
-                reply_no_audio = '* [**Soundless video**](' + media_url + ')'
+                reply_no_audio = '* [**Direct link**](' + media_url + ')'
 
             audio_url = media_url.rpartition('/')[0] + '/audio'
-            reply = reply_no_audio
+            has_audio = check_audio(audio_url)
+            reply_audio_only = ""
+            if has_audio:
+                reply_audio_only = '* [**Audio only**](' + audio_url + ')'
+                reply_no_audio = '* [**Direct soundless link**](' + media_url + ')'
 
-            if media_url == submission.url or has_audio(audio_url):
-                if media_url == submission.url:
-                    reply_audio_only = ""
-                else:
-                    reply_audio_only = '* [**Audio only**](' + audio_url + ')'
+            reply = reply_no_audio
+            if ALWAYS_UPLOAD or media_url == submission.url or has_audio:
 
                 download_path = DATA_PATH + 'downloaded/' + str(submission.id) + VIDEO_FORMAT
                 upload_path = DATA_PATH + 'uploaded/' + str(submission.id) + '.txt'
@@ -91,17 +100,20 @@ def main():
                     # Create log file with uploaded link, named after the submission ID
                     create_uploaded_log(upload_path, uploaded_url)
                     if "vredd.it" in uploaded_url:
-                        video_with_sound = "* [**Video with sound** via https://vredd.it]("
+                        direct_link = "* [**Download** via https://vredd.it]("
+                    elif "ripsave" in uploaded_url:
+                        direct_link = "* [**Download** via https://ripsave.com**]("
                     else:
-                        video_with_sound = "* [**Video with sound**]("
+                        direct_link = "* [**Download**]("
                     try:
-                        reply_audio = video_with_sound + uploaded_url + ")"
+                        reply_audio = direct_link + uploaded_url + ")"
                         reply = reply_audio + '\n\n' + reply_no_audio + '\n\n' + reply_audio_only
                     except Exception as e:
                         print(e)
-                else:
+                elif has_audio:
                     reply = "Sry, I can only provide a soundless video at the moment. Please try again later. \n\n" + reply_no_audio
-            reply = reply + ANNOUNCEMENT_PM
+
+            reply = reply + announcement
             reply_to_user(item, reply, reddit, author)
 
 
