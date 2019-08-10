@@ -34,7 +34,7 @@ ANNOUNCEMENT_MOBILE = "\n\nUse your mobile browser if your app has problems open
 ANNOUNCEMENT_PM = "\n\nI also work with links sent by PM."
 HEADER = "^I\'m&#32;a&#32;Bot&#32;*bleep*&#32;*bloop*"
 INFO = "[**Info**](https://np.reddit.com/r/VredditDownloader/comments/b61y4i/info)"
-CONTACT = "[**Contact&#32;Developer**](https://np.reddit.com/message/compose?to=/u/Dev-Joe)"
+CONTACT = "[**Contact&#32;Developer**](https://np.reddit.com/message/compose?to=/u/JohannesPertl)"
 DONATE = "[**Contribute**](https://np.reddit.com/r/vredditdownloader/wiki/index)"
 FOOTER = "\n\n&nbsp;\n ***  \n ^" + INFO + "&#32;|&#32;" + CONTACT + "&#32;|&#32;" + DONATE
 INBOX_LIMIT = 10
@@ -351,15 +351,6 @@ def upload(media_url, submission, download_path, upload_path):
     uploaded_url = uploaded_log_exists(upload_path)
     if uploaded_url:
         return uploaded_url
-
-    try:
-        print("Uploading via vredd.it")
-        uploaded_url = upload_via_vreddit(media_url)
-        # Sometimes vredd.it returns invalid url
-        if is_url_valid(uploaded_url):
-            return uploaded_url
-    except Exception as e:
-        print(e)
 
     try:
         print("Uploading via Ripsave")
