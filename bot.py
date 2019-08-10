@@ -177,13 +177,11 @@ def upload_via_vreddit(url):
     login_button = driver.find_element_by_id('submit_url')
     login_button.click()
 
-    counter = 0
-    while counter < 100:
+    for i in range(100):
         try:
             driver.find_element_by_xpath("//*[text()='Play Video']")
             break
         except:
-            counter += 1
             continue
     uploaded_url = driver.find_element_by_class_name('btn').get_attribute('href')
     driver.quit()
@@ -206,15 +204,13 @@ def upload_via_ripsave(url):
     login_button = driver.find_element_by_id('btnGetvideo')
     login_button.click()
 
-    counter = 0
     found_url = False
-    while counter < 100:
+    for i in range(100):
         try:
             driver.find_element_by_xpath("//*[text()='Your video is ready to download']")
             found_url = True
             break
         except:
-            counter += 1
             continue
     if found_url:
         uploaded_url = driver.current_url
@@ -248,7 +244,7 @@ def create_uploaded_log(upload_path, uploaded_url):
 def reply_per_pm(item, reply, reddit, user):
     pm = reply + FOOTER
     subject = "I couldn't reply to your comment so you get a PM instead :)"
-    print('Can\'t comment. Replying per PM.')
+    print("Can't comment. Replying per PM.")
     reddit.redditor(user).message(subject, pm)
     item.mark_read()
 
@@ -266,7 +262,7 @@ def reply_to_user(item, reply, reddit, user):
             item.reply(reply + footer)
             item.mark_read()
 
-        # Send PM if replying went wrong (Should only happen if the bot is banned)
+        # Send PM if replying to the comment went wrong
         except Exception as e:
             print(e)
             try:
