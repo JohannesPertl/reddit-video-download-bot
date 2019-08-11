@@ -95,7 +95,7 @@ def main():
                 upload_path = DATA_PATH + 'uploaded/' + str(submission.id) + '.txt'
 
                 # Upload
-                uploaded_url = upload(media_url, submission, download_path, upload_path)
+                uploaded_url = upload(submission, download_path, upload_path)
                 if uploaded_url:
                     # Create log file with uploaded link, named after the submission ID
                     create_uploaded_log(upload_path, uploaded_url)
@@ -103,6 +103,8 @@ def main():
                         direct_link = "* [**Download** via https://vredd.it]("
                     elif "ripsave" in uploaded_url:
                         direct_link = "* [**Download** via https://ripsave.com**]("
+                    elif "lew.la" in uploaded_url:
+                            direct_link = "* [**Download** via https://lew.la]("
                     else:
                         direct_link = "* [**Download**]("
                     try:
@@ -158,6 +160,35 @@ def authenticate():
     reddit = praw.Reddit('vreddit', user_agent='vreddit')
     print('Authenticated as {}\n'.format(reddit.user.me()))
     return reddit
+
+
+# Upload Video via lew.la
+def upload_via_lewla(url):
+    options = Options()
+    options.add_argument('--headless')
+    options.add_argument('--no-sandbox')
+    options.add_argument('--disable-gpu')
+    driver = webdriver.Chrome(options=options)
+    webpage_url = 'https://lew.la/reddit/'
+    driver.get(webpage_url)
+
+    url_box = driver.find_element_by_id('url-input')
+
+    url_box.send_keys(url)
+
+    download_button = driver.find_element_by_class_name('download-button')
+    download_button.click()
+
+    for i in range(100):
+        try:
+            uploaded_url = driver.find_element_by_partial_link_text(".mp4").get_attribute('href')
+            driver.quit()
+            return uploaded_url
+        except:
+            continue
+
+    driver.quit()
+    return ""
 
 
 # Upload Video via https://vredd.it
@@ -341,16 +372,26 @@ def uploaded_log_exists(upload_path):
         return ""
 
 
-def upload(media_url, submission, download_path, upload_path):
+def upload(submission, download_path, upload_path):
     # Check if already uploaded before
     print("Check uploaded log")
     uploaded_url = uploaded_log_exists(upload_path)
     if uploaded_url:
         return uploaded_url
 
+
+    permalink = "https://www.reddit.com" + submission.permalink
+    
+    try:
+        print("Uploading via lew.la")
+        uploaded_url = upload_via_lewla(permalink)
+        if is_url_valid(uploaded_url):
+            return uploaded_url
+    except Exception as e:
+        print(e)
+
     try:
         print("Uploading via Ripsave")
-        permalink = "https://www.reddit.com" + submission.permalink
         uploaded_url = upload_via_ripsave(permalink)
         if is_url_valid(uploaded_url):
             return uploaded_url
