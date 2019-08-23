@@ -120,8 +120,8 @@ def main():
 
             time.sleep(2)
 
-# Upload via catbox.moe
 def upload_catbox(file_path):
+    """Upload via catbox.moe"""
     try:
         files = {
             'reqtype': (None, 'fileupload'),
