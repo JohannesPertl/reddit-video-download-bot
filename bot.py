@@ -1,35 +1,35 @@
-# !/usr/bin/env python3
+#!/usr/bin/env python3
+"""Reddit Bot that provides downloadable links for v.redd.it videos"""
 
-# Reddit Bot that provides downloadable links for v.redd.it videos
-
-
-import praw
 import time
 import re
 import random
 import os.path
 import os
+import urllib.request, urllib.error
+from urllib.request import Request, urlopen
+
+import praw
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-import urllib.request, urllib.error
 import certifi
-from urllib.request import Request, urlopen
 import youtube_dl
-import pomf
 import requests
 from praw.models import Comment
 from praw.models import Message
 
+import pomf
+
 
 # Constants
 BOT_NAME = "u/vredditDownloader"
-NO_FOOTER_SUBS = 'furry_irl', 'pcmasterrace', 'bakchodi', 'pakistan'
-PM_SUBS = ['funny', 'mademesmile', 'Rainbow6']
+NO_FOOTER_SUBS = ('furry_irl', 'pcmasterrace', 'bakchodi', 'pakistan')
+PM_SUBS = ('funny', 'mademesmile', 'Rainbow6')
 DATA_PATH = '/home/pi/bots/vreddit/data/'
+COMMENTED_PATH = '/home/pi/bots/vreddit/data/commented.txt'
 VIDEO_FORMAT = '.mp4'
-COMMENTED_PATH = DATA_PATH + 'commented.txt'
-BLACKLIST_SUBS = ["The_Donald"]
-BLACKLIST_USERS = ['null']
+BLACKLIST_SUBS = ("The_Donald")
+BLACKLIST_USERS = ('null')
 ANNOUNCEMENT_MOBILE = "\n\nUse your mobile browser if your app has problems opening my links."
 ANNOUNCEMENT_PM = "\n\nI also work with links sent by PM."
 HEADER = "^I\'m&#32;a&#32;Bot&#32;*bleep*&#32;*bloop*"
@@ -39,7 +39,7 @@ DONATE = "[**Contribute**](https://np.reddit.com/r/vredditdownloader/wiki/index)
 FOOTER = "\n\n&nbsp;\n ***  \n ^" + INFO + "&#32;|&#32;" + CONTACT + "&#32;|&#32;" + DONATE
 INBOX_LIMIT = 10
 RATELIMIT = 2000000
-MAX_FILESIZE = int('200000000')
+MAX_FILESIZE = 200000000
 
 # Determines if videos without sound get uploaded to external site or linked via direct v.redd.it link
 ALWAYS_UPLOAD = True
@@ -89,7 +89,7 @@ def main():
                 reply_no_audio = '* [**Direct soundless link**](' + media_url + ')'
 
             reply = reply_no_audio
-            if ALWAYS_UPLOAD or media_url == submission.url or has_audio:
+            if ALWAYS_UPLOAD or has_audio or media_url == submission.url:
 
                 download_path = DATA_PATH + 'downloaded/' + str(submission.id) + VIDEO_FORMAT
                 upload_path = DATA_PATH + 'uploaded/' + str(submission.id) + '.txt'
@@ -118,11 +118,10 @@ def main():
             reply = reply + announcement
             reply_to_user(item, reply, reddit, author)
 
-
             time.sleep(2)
 
-# Upload via catbox.moe
 def upload_catbox(file_path):
+    """Upload via catbox.moe"""
     try:
         files = {
             'reqtype': (None, 'fileupload'),
@@ -154,16 +153,16 @@ def download(download_url, download_path):
         return ""
 
 
-# Authenticate via praw.ini file, look at praw documentation for more info
 def authenticate():
+    """Authenticate via praw.ini file, look at praw documentation for more info"""
     print('Authenticating...\n')
     reddit = praw.Reddit('vreddit', user_agent='vreddit')
     print('Authenticated as {}\n'.format(reddit.user.me()))
     return reddit
 
 
-# Upload Video via lew.la
 def upload_via_lewla(url):
+    """Upload Video via lew.la"""
     options = Options()
     options.add_argument('--headless')
     options.add_argument('--no-sandbox')
@@ -191,8 +190,8 @@ def upload_via_lewla(url):
     return ""
 
 
-# Upload Video via https://vredd.it
 def upload_via_vreddit(url):
+    """Upload Video via https://vredd.it"""
     options = Options()
     options.add_argument('--headless')
     options.add_argument('--no-sandbox')
@@ -250,8 +249,8 @@ def upload_via_ripsave(url):
     driver.quit()
     return uploaded_url
 
-# check if v.redd.it link has audio 
 def has_audio(url):
+    """Check if v.redd.it link has audio"""
     try:
         req = urllib.request.Request(url)
         resp = urllib.request.urlopen(req)
@@ -260,13 +259,12 @@ def has_audio(url):
     except:
         return False
 
-# Create .txt file that contains uploaded url
 def create_uploaded_log(upload_path, uploaded_url):
+    """Create .txt file that contains uploaded url"""
     try:
         print('Creating txt file.')
-        f = open(upload_path, "w+")
-        f.write(uploaded_url)
-        f.close()
+        with open(upload_path, "w+") as f:
+            f.write(uploaded_url)
     except Exception as e:
         print(e)
         print("ERROR: Can't create txt file.")
@@ -279,8 +277,8 @@ def reply_per_pm(item, reply, reddit, user):
     reddit.redditor(user).message(subject, pm)
     item.mark_read()
 
-# Reply per comment
 def reply_to_user(item, reply, reddit, user):
+    """Reply per comment"""
     if str(item.subreddit) in NO_FOOTER_SUBS:
         footer = ""
     else:
@@ -311,8 +309,8 @@ def is_url_valid(url):
     else:
         return True
 
-# Read video url from reddit submission
 def create_media_url(submission, reddit):
+    """Read video url from reddit submission"""
     media_url = "False"
     try:
         media_url = submission.media['reddit_video']['fallback_url']
@@ -338,8 +336,8 @@ def get_real_reddit_submission(reddit, url):
         return ""
         print(e)
 
-# Check if item to reply to is comment or private message
 def type_of_item(item):
+    """Check if item to reply to is comment or private message"""
     body = str(item.body)
     match_text = re.search(r"(?i)" + BOT_NAME, body)
     match_link = re.search(
@@ -353,8 +351,8 @@ def type_of_item(item):
 
     return ""
 
-# Check if video has been uploaded before
 def uploaded_log_exists(upload_path):
+    """Check if video has been uploaded before"""
     if not os.path.exists(upload_path):
         return ""
 
@@ -373,7 +371,7 @@ def uploaded_log_exists(upload_path):
 
 
 def upload(submission, download_path, upload_path):
-    # Check if already uploaded before
+    """Check if already uploaded before"""
     print("Check uploaded log")
     uploaded_url = uploaded_log_exists(upload_path)
     if uploaded_url:
@@ -406,8 +404,6 @@ def upload(submission, download_path, upload_path):
     if uploaded_url:
         os.remove(download_path)
     return uploaded_url
-
-    return ""
 
 
 if __name__ == '__main__':
