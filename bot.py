@@ -3,10 +3,7 @@
 
 import time
 import re
-import random
-import os.path
 import os
-import urllib.request, urllib.error
 from urllib.request import Request, urlopen
 
 import praw
@@ -17,8 +14,6 @@ import youtube_dl
 import requests
 from praw.models import Comment
 from praw.models import Message
-
-import pomf
 
 
 # Constants
@@ -252,8 +247,8 @@ def upload_via_ripsave(url):
 def has_audio(url):
     """Check if v.redd.it link has audio"""
     try:
-        req = urllib.request.Request(url)
-        resp = urllib.request.urlopen(req)
+        req = Request(url)
+        resp = urlopen(req)
         resp.read()
         return True
     except:
@@ -303,7 +298,7 @@ def reply_to_user(item, reply, reddit, user):
 def is_url_valid(url):
     try:
         req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-        urllib.request.urlopen(req, cafile=certifi.where())
+        urlopen(req, cafile=certifi.where())
     except Exception as e:
         return False
     else:
