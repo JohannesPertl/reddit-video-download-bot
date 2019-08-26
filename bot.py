@@ -213,8 +213,8 @@ def upload_via_vreddit(url):
     return uploaded_url
 
 
-# Upload Video via https://ripsave
 def upload_via_ripsave(url):
+    """Upload Video via https://ripsave"""
     options = Options()
     options.add_argument('--headless')
     options.add_argument('--no-sandbox')
