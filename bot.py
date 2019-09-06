@@ -244,7 +244,8 @@ def upload_via_ripsave(url):
     driver.quit()
     return uploaded_url
 
-def has_audio(url):
+
+def check_audio(url):
     """Check if v.redd.it link has audio"""
     try:
         req = Request(url)
@@ -254,6 +255,7 @@ def has_audio(url):
     except:
         return False
 
+    
 def create_uploaded_log(upload_path, uploaded_url):
     """Create .txt file that contains uploaded url"""
     try:
@@ -271,7 +273,8 @@ def reply_per_pm(item, reply, reddit, user):
     print("Can't comment. Replying per PM.")
     reddit.redditor(user).message(subject, pm)
     item.mark_read()
-
+    
+    
 def reply_to_user(item, reply, reddit, user):
     """Reply per comment"""
     if str(item.subreddit) in NO_FOOTER_SUBS:
@@ -345,6 +348,7 @@ def type_of_item(item):
         return match_link[0]
 
     return ""
+
 
 def uploaded_log_exists(upload_path):
     """Check if video has been uploaded before"""
