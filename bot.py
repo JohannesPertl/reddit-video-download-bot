@@ -157,7 +157,7 @@ def authenticate():
 
 
 def upload_via_lewla(url):
-    """Upload Video via lew.la"""
+    """Upload Video via https://lew.la"""
     options = Options()
     options.add_argument('--headless')
     options.add_argument('--no-sandbox')
@@ -214,7 +214,7 @@ def upload_via_vreddit(url):
 
 
 def upload_via_ripsave(url):
-    """Upload Video via https://ripsave"""
+    """Upload Video via https://ripsave.com"""
     options = Options()
     options.add_argument('--headless')
     options.add_argument('--no-sandbox')
@@ -331,8 +331,9 @@ def get_real_reddit_submission(reddit, url):
         link = re.sub('DASH.*', '', url)
         return reddit.submission(url=requests.get(link).url)
     except Exception as e:
-        return ""
         print(e)
+        return ""
+        
 
 def type_of_item(item):
     """Check if item to reply to is comment or private message"""
