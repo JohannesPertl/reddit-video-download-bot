@@ -213,37 +213,39 @@ def upload_via_vreddit(url):
     return uploaded_url
 
 
-def upload_via_ripsave(url):
-    """Upload Video via https://ripsave.com"""
-    options = Options()
-    options.add_argument('--headless')
-    options.add_argument('--no-sandbox')
-    options.add_argument('--disable-gpu')
-    driver = webdriver.Chrome(chrome_options=options)
-    webpage_url = 'https://ripsave.com/reddit-video-downloader'
-    driver.get(webpage_url)
+def upload_via_ripsave(url, submission):
+    # Upload to ripsave
 
-    url_box = driver.find_element_by_name('video')
-    url_box.send_keys(url)
+    ripsave = "https://ripsave.com"
+    post_link = ripsave+"/getlink"
+    test = requests.post(post_link, data={
+        'url': url
+    })
 
-    login_button = driver.find_element_by_id('btnGetvideo')
-    login_button.click()
+    if test.status_code != 200:
+        return ""
 
-    found_url = False
-    for i in range(100):
-        try:
-            driver.find_element_by_xpath("//*[text()='Your video is ready to download']")
-            found_url = True
+    dash = str(submission.url)
+    id = dash.replace('https://v.redd.it/', '')
+
+    # Choose best quality available
+    get_link = ripsave + "/genlink"
+    quality_list = ["1080", "720", "480", "360", "240", "96"]
+    q = ""
+    for quality in quality_list:
+        button_link = "https://ripsave.com/genlink?s=reddit" + "&v=" + dash + "/DASH_" + quality + "&a=" + dash + "/audio&id=" + id + "&q=" + quality + "&t=" + id
+
+        if (requests.get(button_link)).status_code == 200:
+            q = quality
             break
-        except:
-            continue
-    if found_url:
-        uploaded_url = driver.current_url
-    else:
-        uploaded_url = ""
-    driver.quit()
-    return uploaded_url
 
+
+    if not q:
+        return ""
+
+    # Generate download link
+    download_link = ripsave + "/download?t=" + id + "&f=" + id + "_" + q + ".mp4"
+    return(download_link)
 
 def check_audio(url):
     """Check if v.redd.it link has audio"""
@@ -390,7 +392,7 @@ def upload(submission, download_path, upload_path):
 
     try:
         print("Uploading via Ripsave")
-        uploaded_url = upload_via_ripsave(permalink)
+        uploaded_url = upload_via_ripsave(permalink, submission)
         if is_url_valid(uploaded_url):
             return uploaded_url
     except Exception as e:
