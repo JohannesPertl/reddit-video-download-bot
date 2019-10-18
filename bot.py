@@ -214,26 +214,26 @@ def upload_via_vreddit(url):
 
 
 def upload_via_ripsave(url, submission):
-    # Upload to ripsave
+    # Upload the video
 
     ripsave = "https://ripsave.com"
     post_link = ripsave+"/getlink"
-    test = requests.post(post_link, data={
+    upload_request = requests.post(post_link, data={
         'url': url
     })
 
-    if test.status_code != 200:
+    if upload_request.status_code != 200:
         return ""
 
-    dash = str(submission.url)
-    id = dash.replace('https://v.redd.it/', '')
+    dash_video = str(submission.url)
+    dash_video_id= dash_video.replace('https://v.redd.it/', '')
 
     # Choose best quality available
     get_link = ripsave + "/genlink"
     quality_list = ["1080", "720", "480", "360", "240", "96"]
     q = ""
     for quality in quality_list:
-        button_link = "https://ripsave.com/genlink?s=reddit" + "&v=" + dash + "/DASH_" + quality + "&a=" + dash + "/audio&id=" + id + "&q=" + quality + "&t=" + id
+        button_link = "https://ripsave.com/genlink?s=reddit" + "&v=" + dash + "/DASH_" + quality + "&a=" + dash + "/audio&id=" + dash_video_id + "&q=" + quality + "&t=" + dash_video_id
 
         if (requests.get(button_link)).status_code == 200:
             q = quality
@@ -244,7 +244,7 @@ def upload_via_ripsave(url, submission):
         return ""
 
     # Generate download link
-    download_link = ripsave + "/download?t=" + id + "&f=" + id + "_" + q + ".mp4"
+    download_link = ripsave + "/download?t=" + dash_video_id + "&f=" + dash_video_id + "_" + q + ".mp4"
     return(download_link)
 
 def check_audio(url):
