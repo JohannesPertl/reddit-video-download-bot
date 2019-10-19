@@ -22,7 +22,6 @@ NO_FOOTER_SUBS = ('furry_irl', 'pcmasterrace', 'bakchodi', 'pakistan')
 PM_SUBS = ('funny', 'mademesmile', 'Rainbow6')
 DATA_PATH = '/home/pi/bots/vreddit/data/'
 COMMENTED_PATH = '/home/pi/bots/vreddit/data/commented.txt'
-VIDEO_FORMAT = '.mp4'
 BLACKLIST_SUBS = ("The_Donald")
 BLACKLIST_USERS = ('null')
 ANNOUNCEMENT_MOBILE = "\n\nUse your mobile browser if your app has problems opening my links."
@@ -33,8 +32,6 @@ CONTACT = "[**Contact&#32;Developer**](https://np.reddit.com/message/compose?to=
 DONATE = "[**Contribute**](https://np.reddit.com/r/vredditdownloader/wiki/index)"
 FOOTER = "\n\n&nbsp;\n ***  \n ^" + INFO + "&#32;|&#32;" + CONTACT + "&#32;|&#32;" + DONATE
 INBOX_LIMIT = 10
-RATELIMIT = 2000000
-MAX_FILESIZE = 200000000
 
 # Determines if videos without sound get uploaded to external site or linked via direct v.redd.it link
 ALWAYS_UPLOAD = True
@@ -86,11 +83,10 @@ def main():
             reply = reply_no_audio
             if ALWAYS_UPLOAD or has_audio or media_url == submission.url:
 
-                download_path = DATA_PATH + 'downloaded/' + str(submission.id) + VIDEO_FORMAT
                 upload_path = DATA_PATH + 'uploaded/' + str(submission.id) + '.txt'
 
                 # Upload
-                uploaded_url = upload(submission, download_path, upload_path)
+                uploaded_url = upload(submission, upload_path)
                 if uploaded_url:
                     # Create log file with uploaded link, named after the submission ID
                     create_uploaded_log(upload_path, uploaded_url)
@@ -114,20 +110,6 @@ def main():
             reply_to_user(item, reply, reddit, author)
 
             time.sleep(2)
-
-def upload_catbox(file_path):
-    """Upload via catbox.moe"""
-    try:
-        files = {
-            'reqtype': (None, 'fileupload'),
-            'fileToUpload': (file_path, open(file_path, 'rb')),
-        }
-        response = requests.post('https://catbox.moe/user/api.php', files=files)
-        return response.text
-    except Exception as e:
-        print(e)
-        print("Uploading failed.")
-        return ""
 
 
 def download(download_url, download_path):
@@ -372,7 +354,7 @@ def uploaded_log_exists(upload_path):
         return ""
 
 
-def upload(submission, download_path, upload_path):
+def upload(submission, upload_path):
     """Check if already uploaded before"""
     print("Check uploaded log")
     uploaded_url = uploaded_log_exists(upload_path)
@@ -398,13 +380,7 @@ def upload(submission, download_path, upload_path):
     except Exception as e:
         print(e)
 
-    print("Downloading..")
-    download_path = download(submission.url, download_path)
     
-    print("Uploading to catbox.moe")
-    uploaded_url = upload_catbox(download_path)
-    if uploaded_url:
-        os.remove(download_path)
     return uploaded_url
 
 
