@@ -85,7 +85,7 @@ def main():
                 uploaded_url = upload(submission, upload_path)
                 if uploaded_url:
                     # Create log file with uploaded link, named after the submission ID
-                    create_uploaded_log(upload_path, uploaded_url)
+                    create_log(upload_path, uploaded_url)
                     if "ripsave" in uploaded_url:
                         direct_link = "* [**Download** via https://ripsave.com**]("
                     elif "lew.la" in uploaded_url:
@@ -171,10 +171,11 @@ def upload_via_ripsave(url_to_upload, submission):
     get_link = site_url + "/genlink"
     quality_list = ["1080", "720", "480", "360", "240", "96"]
     quality = ""
+    create_download_link = ""
     for q in quality_list:
-        button_link = "https://ripsave.com/genlink?s=reddit" + "&v=" + dash_video + "/DASH_" + q + "&a=" + dash_video + "/audio&id=" + dash_video_id + "&q=" + q + "&t=" + dash_video_id
+        create_download_link = "https://ripsave.com/genlink?s=reddit" + "&v=" + dash_video + "/DASH_" + q + "&a=" + dash_video + "/audio&id=" + dash_video_id + "&q=" + q + "&t=" + dash_video_id
 
-        if (requests.get(button_link)).status_code == 200:
+        if (requests.get(create_download_link)).status_code == 200:
             quality = q
             break
 
@@ -183,6 +184,7 @@ def upload_via_ripsave(url_to_upload, submission):
 
     # Generate download link
     download_link = site_url + "/download?t=" + dash_video_id + "&f=" + dash_video_id + "_" + quality + ".mp4"
+
     return download_link
 
 
@@ -197,12 +199,12 @@ def check_audio(url):
         return False
 
 
-def create_uploaded_log(upload_path, uploaded_url):
+def create_log(file, content):
     """Create .txt file that contains uploaded url"""
     try:
         print('Creating txt file.')
-        with open(upload_path, "w+") as f:
-            f.write(uploaded_url)
+        with open(file, "w+") as f:
+            f.write(content)
     except Exception as e:
         print(e)
         print("ERROR: Can't create txt file.")
