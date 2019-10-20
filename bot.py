@@ -182,6 +182,10 @@ def upload_via_ripsave(url_to_upload, submission):
     if not quality:
         return ""
 
+    # Create log to keep links active via external script
+    link_to_update = DATA_PATH + 'ripsave/' + dash_video_id + '.txt'
+    create_log(link_to_update, create_download_link)
+
     # Generate download link
     download_link = site_url + "/download?t=" + dash_video_id + "&f=" + dash_video_id + "_" + quality + ".mp4"
 
