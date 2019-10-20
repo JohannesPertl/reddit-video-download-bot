@@ -86,9 +86,7 @@ def main():
                 if uploaded_url:
                     # Create log file with uploaded link, named after the submission ID
                     create_uploaded_log(upload_path, uploaded_url)
-                    if "vredd.it" in uploaded_url:
-                        direct_link = "* [**Download** via https://vredd.it]("
-                    elif "ripsave" in uploaded_url:
+                    if "ripsave" in uploaded_url:
                         direct_link = "* [**Download** via https://ripsave.com**]("
                     elif "lew.la" in uploaded_url:
                         direct_link = "* [**Download** via https://lew.la]("
