@@ -1,20 +1,16 @@
 #!/usr/bin/env python3
 """Reddit Bot that provides downloadable links for v.redd.it videos"""
 
-import time
-import re
 import os
+import re
+import time
 from urllib.request import Request, urlopen
 
-import praw
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
 import certifi
-import youtube_dl
+import praw
 import requests
 from praw.models import Comment
 from praw.models import Message
-
 
 # Constants
 BOT_NAME = "u/vredditDownloader"
@@ -95,7 +91,7 @@ def main():
                     elif "ripsave" in uploaded_url:
                         direct_link = "* [**Download** via https://ripsave.com**]("
                     elif "lew.la" in uploaded_url:
-                            direct_link = "* [**Download** via https://lew.la]("
+                        direct_link = "* [**Download** via https://lew.la]("
                     else:
                         direct_link = "* [**Download**]("
                     try:
@@ -112,24 +108,6 @@ def main():
             time.sleep(2)
 
 
-def download(download_url, download_path):
-    try:
-        ydl_opts = {
-            'outtmpl': download_path,
-            # 'format': 'bestvideo',        #uncomment for video without audio only, see youtube-dl documentation
-            'max_filesize': MAX_FILESIZE,
-            'ratelimit': RATELIMIT,
-        }
-        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([download_url])
-        return download_path
-
-    except Exception as e:
-        print('ERROR: Downloading failed.')
-        print(e)
-        return ""
-
-
 def authenticate():
     """Authenticate via praw.ini file, look at praw documentation for more info"""
     print('Authenticating...\n')
@@ -138,96 +116,77 @@ def authenticate():
     return reddit
 
 
-def upload_via_lewla(url):
-    """Upload Video via https://lew.la"""
-    options = Options()
-    options.add_argument('--headless')
-    options.add_argument('--no-sandbox')
-    options.add_argument('--disable-gpu')
-    driver = webdriver.Chrome(options=options)
-    webpage_url = 'https://lew.la/reddit/'
-    driver.get(webpage_url)
+def upload(submission, upload_path):
+    """Check if already uploaded before"""
+    print("Check uploaded log")
+    uploaded_url = uploaded_log_exists(upload_path)
+    if uploaded_url:
+        return uploaded_url
 
-    url_box = driver.find_element_by_id('url-input')
+    permalink = "https://www.reddit.com" + submission.permalink
 
-    url_box.send_keys(url)
-
-    download_button = driver.find_element_by_class_name('download-button')
-    download_button.click()
-
-    for i in range(100):
-        try:
-            uploaded_url = driver.find_element_by_partial_link_text(".mp4").get_attribute('href')
-            driver.quit()
+    try:
+        print("Uploading via lew.la")
+        uploaded_url = upload_via_lewla(permalink)
+        if is_url_valid(uploaded_url):
             return uploaded_url
-        except:
-            continue
+    except Exception as e:
+        print(e)
 
-    driver.quit()
-    return ""
+    try:
+        print("Uploading via Ripsave")
+        uploaded_url = upload_via_ripsave(permalink, submission)
+        if is_url_valid(uploaded_url):
+            return uploaded_url
+    except Exception as e:
+        print(e)
 
-
-def upload_via_vreddit(url):
-    """Upload Video via https://vredd.it"""
-    options = Options()
-    options.add_argument('--headless')
-    options.add_argument('--no-sandbox')
-    options.add_argument('--disable-gpu')
-    driver = webdriver.Chrome(chrome_options=options)
-    webpage_url = 'https://vredd.it'
-    driver.get(webpage_url)
-
-    url_box = driver.find_element_by_id('r_url')
-
-    url_box.send_keys(url)
-
-    login_button = driver.find_element_by_id('submit_url')
-    login_button.click()
-
-    for i in range(100):
-        try:
-            driver.find_element_by_xpath("//*[text()='Play Video']")
-            break
-        except:
-            continue
-    uploaded_url = driver.find_element_by_class_name('btn').get_attribute('href')
-    driver.quit()
     return uploaded_url
 
 
-def upload_via_ripsave(url, submission):
-    # Upload the video
+def upload_via_lewla(url_to_upload):
+    """Upload video via https://lew.la"""
+    site_url = "https://lew.la/reddit/download"
+    response = requests.post(site_url, data={
+        'url': url_to_upload
+    })
 
-    ripsave = "https://ripsave.com"
-    post_link = ripsave+"/getlink"
+    uploaded_link = "https://lew.la/reddit/clips/" + response.text + ".mp4"
+    return uploaded_link
+
+
+def upload_via_ripsave(url_to_upload, submission):
+    """Upload video via https://ripsave.com"""
+    site_url = "https://ripsave.com"
+    post_link = site_url + "/getlink"
     upload_request = requests.post(post_link, data={
-        'url': url
+        'url': url_to_upload
     })
 
     if upload_request.status_code != 200:
         return ""
 
     dash_video = str(submission.url)
-    dash_video_id= dash_video.replace('https://v.redd.it/', '')
+    dash_video_id = dash_video.replace('https://v.redd.it/', '')
 
     # Choose best quality available
-    get_link = ripsave + "/genlink"
+    get_link = site_url + "/genlink"
     quality_list = ["1080", "720", "480", "360", "240", "96"]
-    q = ""
-    for quality in quality_list:
-        button_link = "https://ripsave.com/genlink?s=reddit" + "&v=" + dash + "/DASH_" + quality + "&a=" + dash + "/audio&id=" + dash_video_id + "&q=" + quality + "&t=" + dash_video_id
+    quality = ""
+    for q in quality_list:
+        button_link = "https://ripsave.com/genlink?s=reddit" + "&v=" + dash_video + "/DASH_" + q + "&a=" + dash_video + "/audio&id=" + dash_video_id + "&q=" + q + "&t=" + dash_video_id
 
         if (requests.get(button_link)).status_code == 200:
-            q = quality
+            quality = q
             break
 
-
-    if not q:
+    if not quality:
         return ""
 
     # Generate download link
-    download_link = ripsave + "/download?t=" + dash_video_id + "&f=" + dash_video_id + "_" + q + ".mp4"
-    return(download_link)
+    download_link = site_url + "/download?t=" + dash_video_id + "&f=" + dash_video_id + "_" + quality + ".mp4"
+    return download_link
+
 
 def check_audio(url):
     """Check if v.redd.it link has audio"""
@@ -239,7 +198,7 @@ def check_audio(url):
     except:
         return False
 
-    
+
 def create_uploaded_log(upload_path, uploaded_url):
     """Create .txt file that contains uploaded url"""
     try:
@@ -250,15 +209,15 @@ def create_uploaded_log(upload_path, uploaded_url):
         print(e)
         print("ERROR: Can't create txt file.")
 
-     
+
 def reply_per_pm(item, reply, reddit, user):
     pm = reply + FOOTER
     subject = "I couldn't reply to your comment so you get a PM instead :)"
     print("Can't comment. Replying per PM.")
     reddit.redditor(user).message(subject, pm)
     item.mark_read()
-    
-    
+
+
 def reply_to_user(item, reply, reddit, user):
     """Reply per comment"""
     if str(item.subreddit) in NO_FOOTER_SUBS:
@@ -291,6 +250,7 @@ def is_url_valid(url):
     else:
         return True
 
+
 def create_media_url(submission, reddit):
     """Read video url from reddit submission"""
     media_url = "False"
@@ -317,7 +277,7 @@ def get_real_reddit_submission(reddit, url):
     except Exception as e:
         print(e)
         return ""
-        
+
 
 def type_of_item(item):
     """Check if item to reply to is comment or private message"""
@@ -352,36 +312,6 @@ def uploaded_log_exists(upload_path):
         print(e)
         print("Couldn't get URL, continuing..")
         return ""
-
-
-def upload(submission, upload_path):
-    """Check if already uploaded before"""
-    print("Check uploaded log")
-    uploaded_url = uploaded_log_exists(upload_path)
-    if uploaded_url:
-        return uploaded_url
-
-
-    permalink = "https://www.reddit.com" + submission.permalink
-    
-    try:
-        print("Uploading via lew.la")
-        uploaded_url = upload_via_lewla(permalink)
-        if is_url_valid(uploaded_url):
-            return uploaded_url
-    except Exception as e:
-        print(e)
-
-    try:
-        print("Uploading via Ripsave")
-        uploaded_url = upload_via_ripsave(permalink, submission)
-        if is_url_valid(uploaded_url):
-            return uploaded_url
-    except Exception as e:
-        print(e)
-
-    
-    return uploaded_url
 
 
 if __name__ == '__main__':
