@@ -4,6 +4,7 @@
 import os
 import re
 import time
+from threading import Thread
 from urllib.request import Request, urlopen
 
 import certifi
@@ -318,5 +319,32 @@ def uploaded_log_exists(upload_path):
         return ""
 
 
+def keep_ripsave_links_alive():
+    path = DATA_PATH + "/ripsave/"
+    hours_to_keep_alive = 6
+    while True:
+        for filename in os.listdir(path):
+            now = time.time()
+            file_path = path + filename
+            creation_date = os.path.getmtime(file_path)
+            age_in_hours = (now - creation_date) / 3600
+
+            if age_in_hours > hours_to_keep_alive:
+                # Stop keeping link online
+                os.remove(file_path)
+            else:
+                # Update link
+                with open(file_path, 'r') as file:
+                    link = file.read()
+                    requests.get(link)
+
+        time.sleep(5)
+
+
 if __name__ == '__main__':
-    main()
+    t1 = Thread(target=main)
+    t2 = Thread(target=keep_ripsave_links_alive)
+    t1.setDaemon(True)
+    t2.setDaemon(True)
+    t1.start()
+    t2.start()
