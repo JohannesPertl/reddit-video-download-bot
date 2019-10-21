@@ -321,7 +321,7 @@ def uploaded_log_exists(upload_path):
 
 def keep_ripsave_links_alive():
     path = DATA_PATH + "/ripsave/"
-    hours_to_keep_alive = 6
+    hours_to_keep_alive = 12
     while True:
         for filename in os.listdir(path):
             now = time.time()
@@ -342,9 +342,6 @@ def keep_ripsave_links_alive():
 
 
 if __name__ == '__main__':
-    t1 = Thread(target=main)
-    t2 = Thread(target=keep_ripsave_links_alive)
-    t1.setDaemon(True)
-    t2.setDaemon(True)
-    t1.start()
-    t2.start()
+    update_ripsave_links = Thread(target=keep_ripsave_links_alive)
+    update_ripsave_links.start()
+    main()
