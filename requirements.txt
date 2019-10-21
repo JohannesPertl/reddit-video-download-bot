@@ -1,3 +1,2 @@
 praw
-selenium
-youtube-dl
+
