@@ -320,6 +320,7 @@ def uploaded_log_exists(upload_path):
 
 
 def keep_ripsave_links_alive():
+    """Keep previously uploaded ripsave links alive a """
     path = DATA_PATH + "/ripsave/"
     hours_to_keep_alive = 12
     while True:
