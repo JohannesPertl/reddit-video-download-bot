@@ -23,6 +23,8 @@ BLACKLIST_SUBS = ("The_Donald")
 BLACKLIST_USERS = ('null')
 ANNOUNCEMENT_MOBILE = "\n\nUse your mobile browser if your app has problems opening my links."
 ANNOUNCEMENT_PM = "\n\nI also work with links sent by PM."
+HOURS_TO_KEEP_ALIVE = 12
+ANNOUNCEMENT_RIPSAVE = "\n\nDownload link is active for " + str(HOURS_TO_KEEP_ALIVE) + " hours. Mention me again afterwards."
 HEADER = "^I\'m&#32;a&#32;Bot&#32;*bleep*&#32;*bloop*"
 INFO = "[**Info**](https://np.reddit.com/r/VredditDownloader/comments/b61y4i/info)"
 CONTACT = "[**Contact&#32;Developer**](https://np.reddit.com/message/compose?to=/u/JohannesPertl)"
@@ -89,6 +91,7 @@ def main():
                     create_log(upload_path, uploaded_url)
                     if "ripsave" in uploaded_url:
                         direct_link = "* [**Download** via https://ripsave.com**]("
+                        announcement = ANNOUNCEMENT_RIPSAVE
                     elif "lew.la" in uploaded_url:
                         direct_link = "* [**Download** via https://lew.la]("
                     else:
@@ -320,9 +323,8 @@ def uploaded_log_exists(upload_path):
 
 
 def keep_ripsave_links_alive():
-    """Keep previously uploaded ripsave links alive a """
+    """Keep previously uploaded ripsave links alive"""
     path = DATA_PATH + "/ripsave/"
-    hours_to_keep_alive = 12
     while True:
         for filename in os.listdir(path):
             now = time.time()
@@ -330,7 +332,7 @@ def keep_ripsave_links_alive():
             creation_date = os.path.getmtime(file_path)
             age_in_hours = (now - creation_date) / 3600
 
-            if age_in_hours > hours_to_keep_alive:
+            if age_in_hours > HOURS_TO_KEEP_ALIVE:
                 # Stop keeping link online
                 os.remove(file_path)
             else:
