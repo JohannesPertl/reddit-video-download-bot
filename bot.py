@@ -24,7 +24,7 @@ BLACKLIST_USERS = ('null')
 ANNOUNCEMENT_MOBILE = "\n\nUse your mobile browser if your app has problems opening my links."
 ANNOUNCEMENT_PM = "\n\nI also work with links sent by PM."
 HOURS_TO_KEEP_ALIVE = 12
-ANNOUNCEMENT_RIPSAVE = "\n\nDownload link is active for " + str(HOURS_TO_KEEP_ALIVE) + " hours. Mention me again afterwards."
+ANNOUNCEMENT_RIPSAVE = "\n\nDownload link is active for " + str(HOURS_TO_KEEP_ALIVE) + " hours"
 HEADER = "^I\'m&#32;a&#32;Bot&#32;*bleep*&#32;*bloop*"
 INFO = "[**Info**](https://np.reddit.com/r/VredditDownloader/comments/b61y4i/info)"
 CONTACT = "[**Contact&#32;Developer**](https://np.reddit.com/message/compose?to=/u/JohannesPertl)"
