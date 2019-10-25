@@ -1,1 +1,3 @@
+certifi
+requests
 praw
