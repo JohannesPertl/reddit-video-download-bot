@@ -69,14 +69,14 @@ def main():
                 media_url = submission.url
                 reply_no_audio = ""
             else:
-                reply_no_audio = '* [**Downloadable v.redd.it link**](' + media_url + ')'
+                reply_no_audio = '* [**Downloadable video link**](' + media_url + ')'
 
             audio_url = media_url.rpartition('/')[0] + '/audio'
             has_audio = check_audio(audio_url)
             reply_audio_only = ""
             if has_audio:
-                reply_audio_only = '* [**Audio only**](' + audio_url + ')'
-                reply_no_audio = '* [**Downloadable soundless link**](' + media_url + ')'
+                reply_audio_only = '* [Audio only](' + audio_url + ')'
+                reply_no_audio = '* [Downloadable soundless link](' + media_url + ')'
 
             reply = reply_no_audio
             if ALWAYS_UPLOAD or has_audio or media_url == submission.url:
