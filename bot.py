@@ -23,12 +23,13 @@ BLACKLIST_SUBS = ("The_Donald")
 BLACKLIST_USERS = ('null')
 ANNOUNCEMENT_MOBILE = "\n\nUse your mobile browser if your app has problems opening my links."
 ANNOUNCEMENT_PM = "\n\nI also work with links sent by PM."
+ANNOUNCEMENT_RIPSAVE = "\n\nMention me again if the download link is down"
 HEADER = "^I\'m&#32;a&#32;Bot&#32;*bleep*&#32;*bloop*"
 INFO = "[**Info**](https://np.reddit.com/r/VredditDownloader/comments/b61y4i/info)"
 CONTACT = "[**Contact&#32;Developer**](https://np.reddit.com/message/compose?to=/u/JohannesPertl)"
 DONATE = "[**Contribute**](https://np.reddit.com/r/vredditdownloader/wiki/index)"
 FOOTER = "\n\n&nbsp;\n ***  \n ^" + INFO + "&#32;|&#32;" + CONTACT + "&#32;|&#32;" + DONATE
-INBOX_LIMIT = 10
+INBOX_LIMIT = 20
 
 # Determines if videos without sound get uploaded to external site or linked via direct v.redd.it link
 ALWAYS_UPLOAD = True
@@ -68,14 +69,14 @@ def main():
                 media_url = submission.url
                 reply_no_audio = ""
             else:
-                reply_no_audio = '* [**Direct link**](' + media_url + ')'
+                reply_no_audio = '* [**Downloadable video link**](' + media_url + ')'
 
             audio_url = media_url.rpartition('/')[0] + '/audio'
             has_audio = check_audio(audio_url)
             reply_audio_only = ""
             if has_audio:
-                reply_audio_only = '* [**Audio only**](' + audio_url + ')'
-                reply_no_audio = '* [**Direct soundless link**](' + media_url + ')'
+                reply_audio_only = '* [Audio only](' + audio_url + ')'
+                reply_no_audio = '* [Downloadable soundless link](' + media_url + ')'
 
             reply = reply_no_audio
             if ALWAYS_UPLOAD or has_audio or media_url == submission.url:
@@ -89,6 +90,7 @@ def main():
                     create_log(upload_path, uploaded_url)
                     if "ripsave" in uploaded_url:
                         direct_link = "* [**Download** via https://ripsave.com**]("
+                        announcement = ANNOUNCEMENT_RIPSAVE
                     elif "lew.la" in uploaded_url:
                         direct_link = "* [**Download** via https://lew.la]("
                     else:
@@ -169,7 +171,6 @@ def upload_via_ripsave(url_to_upload, submission):
     dash_video_id = dash_video.replace('https://v.redd.it/', '')
 
     # Choose best quality available
-    get_link = site_url + "/genlink"
     quality_list = ["1080", "720", "480", "360", "240", "96"]
     quality = ""
     create_download_link = ""
@@ -319,32 +320,5 @@ def uploaded_log_exists(upload_path):
         return ""
 
 
-def keep_ripsave_links_alive():
-    path = DATA_PATH + "/ripsave/"
-    hours_to_keep_alive = 6
-    while True:
-        for filename in os.listdir(path):
-            now = time.time()
-            file_path = path + filename
-            creation_date = os.path.getmtime(file_path)
-            age_in_hours = (now - creation_date) / 3600
-
-            if age_in_hours > hours_to_keep_alive:
-                # Stop keeping link online
-                os.remove(file_path)
-            else:
-                # Update link
-                with open(file_path, 'r') as file:
-                    link = file.read()
-                    requests.get(link)
-
-        time.sleep(5)
-
-
 if __name__ == '__main__':
-    t1 = Thread(target=main)
-    t2 = Thread(target=keep_ripsave_links_alive)
-    t1.setDaemon(True)
-    t2.setDaemon(True)
-    t1.start()
-    t2.start()
+    main()
