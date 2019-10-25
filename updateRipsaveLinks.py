@@ -8,6 +8,7 @@ HOURS_TO_KEEP_ALIVE = 6
 
 
 def update_ripsave_links():
+    """Updates previously posted ripsave links. To keep them alive, run this script every few minutes"""
     with ThreadPoolExecutor() as executor:
         for filename in os.listdir(PATH):
             file_path = PATH + filename
