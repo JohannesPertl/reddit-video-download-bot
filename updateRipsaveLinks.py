@@ -3,6 +3,7 @@ import time
 import requests
 from concurrent.futures import ThreadPoolExecutor
 
+# Constants
 PATH = "/home/pi/bots/vreddit/data/ripsave/"
 HOURS_TO_KEEP_ALIVE = 6
 
