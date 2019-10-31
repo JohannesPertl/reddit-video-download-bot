@@ -8,34 +8,27 @@ from threading import Thread
 from urllib.request import Request, urlopen
 
 import certifi
+import yaml
 import praw
 import requests
 from praw.models import Comment
 from praw.models import Message
 
-# Constants
-BOT_NAME = "u/vredditDownloader"
-NO_FOOTER_SUBS = ('furry_irl', 'pcmasterrace', 'bakchodi', 'pakistan')
-PM_SUBS = ('funny', 'mademesmile', 'Rainbow6')
-DATA_PATH = '/home/pi/bots/vreddit/data/'
-COMMENTED_PATH = '/home/pi/bots/vreddit/data/commented.txt'
-BLACKLIST_SUBS = ("The_Donald")
-BLACKLIST_USERS = ('null')
-ANNOUNCEMENT_MOBILE = "\n\nUse your mobile browser if your app has problems opening my links."
-ANNOUNCEMENT_PM = "\n\nI also work with links sent by PM."
-ANNOUNCEMENT_RIPSAVE = "\n\nMention me again if the download link is down"
-HEADER = "^I\'m&#32;a&#32;Bot&#32;*bleep*&#32;*bloop*"
-INFO = "[**Info**](https://np.reddit.com/r/VredditDownloader/comments/b61y4i/info)"
-CONTACT = "[**Contact&#32;Developer**](https://np.reddit.com/message/compose?to=/u/JohannesPertl)"
-DONATE = "[**Contribute**](https://np.reddit.com/r/vredditdownloader/wiki/index)"
-FOOTER = "\n\n&nbsp;\n ***  \n ^" + INFO + "&#32;|&#32;" + CONTACT + "&#32;|&#32;" + DONATE
-INBOX_LIMIT = 20
+def load_configuration():
 
-# Determines if videos without sound get uploaded to external site or linked via direct v.redd.it link
-ALWAYS_UPLOAD = True
+    CONF_FILE = os.path.join(os.path.dirname(__file__), "configuration.yml")
+    with open(CONF_FILE) as f:
+        SETTINGS = yaml.safe_load(f)
+    
+    globals().update(SETTINGS)
+    # load dependent configuration
+FOOTER = "\n\n&nbsp;\n ***  \n ^" + INFO + "&#32;|&#32;" + CONTACT + "&#32;|&#32;" + DONATE
+    globals().update(FOOTER)
 
 
 def main():
+    load_configuration()
+    
     reddit = authenticate()
     while True:
         # Search mentions in inbox
