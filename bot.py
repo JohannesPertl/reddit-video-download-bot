@@ -19,20 +19,17 @@ def load_configuration():
     CONF_FILE = os.path.join(os.path.dirname(__file__), "configuration.yml")
     with open(CONF_FILE) as f:
         SETTINGS = yaml.safe_load(f)
-    
-    globals().update(SETTINGS)
     # load dependent configuration
-FOOTER = "\n\n&nbsp;\n ***  \n ^" + INFO + "&#32;|&#32;" + CONTACT + "&#32;|&#32;" + DONATE
-    globals().update(FOOTER)
-
+    SETTINGS['FOOTER'] = "\n\n&nbsp;\n ***  \n ^" + SETTINGS['INFO'] + "&#32;|&#32;" + SETTINGS['CONTACT'] + "&#32;|&#32;" + SETTINGS['DONATE']
+    return SETTINGS
 
 def main():
-    load_configuration()
+    SETTINGS = load_configuration()
     
     reddit = authenticate()
     while True:
         # Search mentions in inbox
-        inbox = list(reddit.inbox.unread(limit=INBOX_LIMIT))
+        inbox = list(reddit.inbox.unread(limit=SETTINGS['INBOX_LIMIT']))
         inbox.reverse()
         for item in inbox:
             author = str(item.author)
@@ -43,14 +40,14 @@ def main():
                 continue
             elif match_type == "comment":
                 submission = item.submission
-                announcement = ANNOUNCEMENT_PM
+                announcement = SETTINGS['ANNOUNCEMENT_PM']
             else:  # match_type is message
                 submission = get_real_reddit_submission(reddit, match_type)
                 announcement = ""
 
             try:
                 if not submission or "v.redd.it" not in str(submission.url) or str(
-                        submission.subreddit) in BLACKLIST_SUBS or author in BLACKLIST_USERS:
+                        submission.subreddit) in SETTINGS['BLACKLIST_SUBS'] or author in SETTINGS['BLACKLIST_USERS']:
                     continue
             except Exception as e:
                 print(e)
@@ -72,9 +69,9 @@ def main():
                 reply_no_audio = '* [Downloadable soundless link](' + media_url + ')'
 
             reply = reply_no_audio
-            if ALWAYS_UPLOAD or has_audio or media_url == submission.url:
+            if SETTINGS['ALWAYS_UPLOAD'] or has_audio or media_url == submission.url:
 
-                upload_path = DATA_PATH + 'uploaded/' + str(submission.id) + '.txt'
+                upload_path = SETTINGS['DATA_PATH'] + 'uploaded/' + str(submission.id) + '.txt'
 
                 # Upload
                 uploaded_url = upload(submission, upload_path)
@@ -83,7 +80,7 @@ def main():
                     create_log(upload_path, uploaded_url)
                     if "ripsave" in uploaded_url:
                         direct_link = "* [**Download** via https://ripsave.com**]("
-                        announcement = ANNOUNCEMENT_RIPSAVE
+                        announcement = SETTINGS['ANNOUNCEMENT_RIPSAVE']
                     elif "lew.la" in uploaded_url:
                         direct_link = "* [**Download** via https://lew.la]("
                     else:
@@ -178,7 +175,7 @@ def upload_via_ripsave(url_to_upload, submission):
         return ""
 
     # Create log to keep links active via external script
-    link_to_update = DATA_PATH + 'ripsave/' + dash_video_id + '.txt'
+    link_to_update = SETTINGS['DATA_PATH'] + 'ripsave/' + dash_video_id + '.txt'
     create_log(link_to_update, create_download_link)
 
     # Generate download link
@@ -210,7 +207,7 @@ def create_log(file, content):
 
 
 def reply_per_pm(item, reply, reddit, user):
-    pm = reply + FOOTER
+    pm = reply + SETTINGS['FOOTER']
     subject = "I couldn't reply to your comment so you get a PM instead :)"
     print("Can't comment. Replying per PM.")
     reddit.redditor(user).message(subject, pm)
@@ -219,12 +216,12 @@ def reply_per_pm(item, reply, reddit, user):
 
 def reply_to_user(item, reply, reddit, user):
     """Reply per comment"""
-    if str(item.subreddit) in NO_FOOTER_SUBS:
+    if str(item.subreddit) in SETTINGS['NO_FOOTER_SUBS']:
         footer = ""
     else:
-        footer = FOOTER
+        footer = SETTINGS['FOOTER]
     print('Replying... \n')
-    if str(item.subreddit) in PM_SUBS:
+    if str(item.subreddit) in SETTINGS['PM_SUBS']:
         reply_per_pm(item, reply, reddit, user)
     else:
         try:
@@ -281,7 +278,7 @@ def get_real_reddit_submission(reddit, url):
 def type_of_item(item):
     """Check if item to reply to is comment or private message"""
     body = str(item.body)
-    match_text = re.search(r"(?i)" + BOT_NAME, body)
+    match_text = re.search(r"(?i)" + SETTINGS['BOT_NAME'], body)
     match_link = re.search(
         r"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)", body)
 
