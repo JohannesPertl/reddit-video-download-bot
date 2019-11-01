@@ -10,8 +10,7 @@ PM_SUBS:
   - 'mademesmile'
   - 'Rainbow6'
 DATA_PATH: '/home/pi/bots/vreddit/data/'
-COMMENTED_PATH: '/home/pi/bots/vreddit/data/commented.txt'
-BLACKLIST_SUBS: 
+BLACKLIST_SUBS:
   - 'The_Donald'
 BLACKLIST_USERS: 
   - 'null'
@@ -20,8 +19,7 @@ ANNOUNCEMENT_PM: "\n\nI also work with links sent by PM."
 ANNOUNCEMENT_RIPSAVE: "\n\nMention me again if the download link is down"
 HEADER: "^I'm&#32;a&#32;Bot&#32;*bleep*&#32;*bloop*"
 INFO: "[**Info**](https://np.reddit.com/r/VredditDownloader/comments/b61y4i/info)"
-CONTACT: "[**Contact&#32;Developer**](https://np.reddit.com/message/compose?to=/u/JohannesPertl)"
-DONATE: "[**Contribute**](https://np.reddit.com/r/vredditdownloader/wiki/index)"
+DONATE: "[**Support&#32;me&#32;❤**](https://www.paypal.me/synapsensalat)"
 INBOX_LIMIT: 20
 
 # Determines if videos without sound get uploaded to external site or linked via direct v.redd.it link

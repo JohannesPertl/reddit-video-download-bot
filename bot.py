@@ -15,12 +15,11 @@ from praw.models import Message
 
 
 def load_configuration():
-    conf_file = os.path.join(os.path.dirname(__file__), "configuration.yml")
+    conf_file = os.path.join(os.path.dirname(__file__), "config.yaml")
     with open(conf_file) as f:
         settings = yaml.safe_load(f)
     # load dependent configuration
-    settings['FOOTER'] = "\n\n&nbsp;\n ***  \n ^" + settings['INFO'] + "&#32;|&#32;" + settings[
-        'CONTACT'] + "&#32;|&#32;" + settings['DONATE']
+    settings['FOOTER'] = "\n\n&nbsp;\n ***  \n ^" + settings['INFO'] + "&#32;|&#32;" + settings['DONATE']
     return settings
 
 
