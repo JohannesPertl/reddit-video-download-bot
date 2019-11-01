@@ -4,28 +4,30 @@
 import os
 import re
 import time
-from threading import Thread
 from urllib.request import Request, urlopen
 
 import certifi
-import yaml
 import praw
 import requests
+import yaml
 from praw.models import Comment
 from praw.models import Message
 
-def load_configuration():
 
-    CONF_FILE = os.path.join(os.path.dirname(__file__), "configuration.yml")
-    with open(CONF_FILE) as f:
-        SETTINGS = yaml.safe_load(f)
+def load_configuration():
+    conf_file = os.path.join(os.path.dirname(__file__), "configuration.yml")
+    with open(conf_file) as f:
+        settings = yaml.safe_load(f)
     # load dependent configuration
-    SETTINGS['FOOTER'] = "\n\n&nbsp;\n ***  \n ^" + SETTINGS['INFO'] + "&#32;|&#32;" + SETTINGS['CONTACT'] + "&#32;|&#32;" + SETTINGS['DONATE']
-    return SETTINGS
+    settings['FOOTER'] = "\n\n&nbsp;\n ***  \n ^" + settings['INFO'] + "&#32;|&#32;" + settings[
+        'CONTACT'] + "&#32;|&#32;" + settings['DONATE']
+    return settings
+
+
+SETTINGS = load_configuration()
+
 
 def main():
-    SETTINGS = load_configuration()
-    
     reddit = authenticate()
     while True:
         # Search mentions in inbox
@@ -219,7 +221,8 @@ def reply_to_user(item, reply, reddit, user):
     if str(item.subreddit) in SETTINGS['NO_FOOTER_SUBS']:
         footer = ""
     else:
-        footer = SETTINGS['FOOTER]
+        footer = SETTINGS['FOOTER']
+
     print('Replying... \n')
     if str(item.subreddit) in SETTINGS['PM_SUBS']:
         reply_per_pm(item, reply, reddit, user)
@@ -241,7 +244,7 @@ def is_url_valid(url):
     try:
         req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
         urlopen(req, cafile=certifi.where())
-    except Exception as e:
+    except:
         return False
     else:
         return True
@@ -280,7 +283,7 @@ def type_of_item(item):
     body = str(item.body)
     match_text = re.search(r"(?i)" + SETTINGS['BOT_NAME'], body)
     match_link = re.search(
-        r"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)", body)
+        r"https?://(www\.)?[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_+.~#?&/=]*)", body)
 
     if isinstance(item, Comment) and match_text:
         return "comment"
