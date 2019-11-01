@@ -1,3 +1,4 @@
 certifi
 requests
 praw
+PyYAML==5.1.2
