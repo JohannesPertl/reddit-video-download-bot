@@ -14,7 +14,6 @@ BLACKLIST_SUBS:
   - 'The_Donald'
 BLACKLIST_USERS: 
   - 'null'
-ANNOUNCEMENT_MOBILE: "\n\nUse your mobile browser if your app has problems opening my links."
 ANNOUNCEMENT_PM: "\n\nI also work with links sent by PM."
 ANNOUNCEMENT_RIPSAVE: "\n\nMention me again if the download link is down"
 HEADER: "^I'm&#32;a&#32;Bot&#32;*bleep*&#32;*bloop*"
