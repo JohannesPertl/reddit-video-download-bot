@@ -24,7 +24,7 @@ Videos hosted on the social media platform www.reddit.com are nearly impossible 
 
 Since 2018, I run it on my own Raspberry Pi at home.
 
-Currently, the bot account is [VredditDownloader]https://www.reddit.com/user/VredditDownloader). 
+Currently, the bot account is [VredditDownloader](https://www.reddit.com/user/VredditDownloader). 
 
 
 ### Usage
