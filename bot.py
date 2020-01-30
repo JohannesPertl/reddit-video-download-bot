@@ -10,8 +10,7 @@ import certifi
 import praw
 import requests
 import yaml
-from praw.models import Comment
-from praw.models import Message
+from praw.models import Comment, Message
 
 
 def load_configuration():
@@ -60,19 +59,19 @@ def main():
                 media_url = submission.url
                 reply_no_audio = ""
             else:
-                reply_no_audio = '* [**Downloadable video link**](' + media_url + ')'
+                reply_no_audio = f'* [**Downloadable video link**]({media_url})'
 
             audio_url = media_url.rpartition('/')[0] + '/audio'
             has_audio = check_audio(audio_url)
             reply_audio_only = ""
             if has_audio:
-                reply_audio_only = '* [Audio only](' + audio_url + ')'
-                reply_no_audio = '* [Downloadable soundless link](' + media_url + ')'
+                reply_audio_only = f'* [Audio only]({audio_url})'
+                reply_no_audio = f'* [Downloadable soundless link]({media_url})'
 
             reply = reply_no_audio
             if SETTINGS['ALWAYS_UPLOAD'] or has_audio or media_url == submission.url:
 
-                upload_path = SETTINGS['DATA_PATH'] + 'uploaded/' + str(submission.id) + '.txt'
+                upload_path = SETTINGS['DATA_PATH'] + f'uploaded/{submission.id!s}.txt'
 
                 # Upload
                 uploaded_url = upload(submission, upload_path)
@@ -88,7 +87,7 @@ def main():
                         direct_link = "* [**Download**]("
                     try:
                         reply_audio = direct_link + uploaded_url + ")"
-                        reply = reply_audio + '\n\n' + reply_no_audio + '\n\n' + reply_audio_only
+                        reply = f'{reply_audio}\n\n{reply_no_audio}\n\n{reply_audio_only}'
                     except Exception as e:
                         print(e)
                 elif has_audio:
@@ -104,7 +103,7 @@ def authenticate():
     """Authenticate via praw.ini file, look at praw documentation for more info"""
     print('Authenticating...\n')
     reddit = praw.Reddit('vreddit', user_agent='vreddit')
-    print('Authenticated as {}\n'.format(reddit.user.me()))
+    print(f'Authenticated as {reddit.user.me()}\n')
     return reddit
 
 
@@ -143,7 +142,7 @@ def upload_via_lewla(url_to_upload):
         'url': url_to_upload
     })
 
-    uploaded_link = "https://lew.la/reddit/clips/" + response.text + ".mp4"
+    uploaded_link = f"https://lew.la/reddit/clips/{response.text}.mp4"
     return uploaded_link
 
 
@@ -166,9 +165,15 @@ def upload_via_ripsave(url_to_upload, submission):
     quality = ""
     create_download_link = ""
     for q in quality_list:
-        create_download_link = "https://ripsave.com/genlink?s=reddit" + "&v=" + dash_video + "/DASH_" + q + "&a=" + dash_video + "/audio&id=" + dash_video_id + "&q=" + q + "&t=" + dash_video_id
-
-        if (requests.get(create_download_link)).status_code == 200:
+        r = requests.get('https://ripsave.com/genlink', params={
+            's': 'reddit',
+            'v': f'{dash_video}/DASH_{q}',
+            'a': f'{dash_video}/audio',
+            'id': dash_video_id,
+            'q': q,
+            't': dash_video_id
+        })
+        if r.status_code == 200:
             quality = q
             break
 
@@ -176,11 +181,11 @@ def upload_via_ripsave(url_to_upload, submission):
         return ""
 
     # Create log to keep links active via external script
-    link_to_update = SETTINGS['DATA_PATH'] + 'ripsave/' + dash_video_id + '.txt'
+    link_to_update = SETTINGS['DATA_PATH'] + f'ripsave/{dash_video_id}.txt'
     create_log(link_to_update, create_download_link)
 
     # Generate download link
-    download_link = site_url + "/download?t=" + dash_video_id + "&f=" + dash_video_id + "_" + quality + ".mp4"
+    download_link = f"{site_url}/download?t={dash_video_id}&f={dash_video_id}_{quality}.mp4"
 
     return download_link
 
