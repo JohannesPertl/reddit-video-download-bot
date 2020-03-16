@@ -73,16 +73,6 @@ and add this line (replace <path> with path to your local repository)
 
     @reboot python3 <path>/bot.py &>> /dev/null
     
-### Keep ripsave links active
-
-Videos uploaded on ripsave.com are only active for a short time. To keep them online, I wrote a separate [script](updateRipsaveLinks.py).
-
-Customize it as you wish, then periodically call it (for example with a cronjob)
-    
-    # Update the links every minute
-    * * * * * python3 <path>/updateRipsaveLinks.py
-
-
 
 ## Contributing
 
@@ -109,7 +99,7 @@ johannes.pertl@edu.fh-joanneum.at
 
 ## Acknowledgements
 
-Special thanks to the owners of **www.ripsave.com** and **www.lew.la**, who very kindly let me use their services! 
+Special thanks to the owners of **www.viddit.red** and **www.lew.la**, who very kindly let me use their services! 
 
 * [Praw](https://praw.readthedocs.io/en/latest)
 * [Pomfpy](https://github.com/AggressivelyMeows/Pomf.py)
