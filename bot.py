@@ -16,7 +16,7 @@ from praw.models import Comment, Message
 
 def load_configuration():
     conf_file = os.path.join(os.path.dirname(__file__), "config.yaml")
-    with open(conf_file) as f:
+    with open(conf_file, encoding='utf8') as f:
         settings = yaml.safe_load(f)
     # load dependent configuration
     settings['FOOTER'] = "\n\n&nbsp;\n ***  \n ^" + settings['INFO'] + "&#32;|&#32;" + settings['DONATE']
