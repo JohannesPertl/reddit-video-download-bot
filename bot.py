@@ -5,9 +5,9 @@ import os
 import re
 import time
 import urllib.parse
+from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
-import certifi
 import praw
 import requests
 import yaml
@@ -226,12 +226,10 @@ def reply_to_user(item, reply, reddit, user):
 
 def is_url_valid(url):
     try:
-        req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-        urlopen(req, cafile=certifi.where())
-    except:
+        status_code = urllib.request.urlopen(url, timeout=2).getcode()
+        return status_code == 200
+    except (HTTPError, URLError, ValueError):
         return False
-    else:
-        return True
 
 
 def create_media_url(submission, reddit):
