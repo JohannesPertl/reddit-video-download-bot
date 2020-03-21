@@ -4,6 +4,7 @@
 import os
 import re
 import time
+import urllib.parse
 from urllib.request import Request, urlopen
 
 import certifi
@@ -78,9 +79,10 @@ def main():
                 if uploaded_url:
                     # Create log file with uploaded link, named after the submission ID
                     create_log(upload_path, uploaded_url)
-                    if "ripsave" in uploaded_url:
-                        direct_link = "* [**Download** via https://ripsave.com**]("
-                        announcement = SETTINGS['ANNOUNCEMENT_RIPSAVE']
+                    if "viddit" in uploaded_url:
+                        direct_link = "* [**Download** via https://viddit.red**]("
+                    elif "vreddit" in uploaded_url:
+                        direct_link = "* [**Download** via https://vreddit.cc]("
                     elif "lew.la" in uploaded_url:
                         direct_link = "* [**Download** via https://lew.la]("
                     else:
@@ -117,6 +119,14 @@ def upload(submission, upload_path):
     permalink = "https://www.reddit.com" + submission.permalink
 
     try:
+        print("Uploading via vreddit.cc")
+        uploaded_url = upload_via_vredditcc(permalink)
+        if is_url_valid(uploaded_url):
+            return uploaded_url
+    except Exception as e:
+        print(e)
+
+    try:
         print("Uploading via lew.la")
         uploaded_url = upload_via_lewla(permalink)
         if is_url_valid(uploaded_url):
@@ -125,8 +135,9 @@ def upload(submission, upload_path):
         print(e)
 
     try:
-        print("Uploading via Ripsave")
-        uploaded_url = upload_via_ripsave(permalink, submission)
+        print("Uploading via viddit.red")
+        uploaded_url = upload_via_viddit(permalink)
+        print(uploaded_url)
         if is_url_valid(uploaded_url):
             return uploaded_url
     except Exception as e:
@@ -135,59 +146,29 @@ def upload(submission, upload_path):
     return uploaded_url
 
 
-def upload_via_lewla(url_to_upload):
+def upload_via_lewla(url):
     """Upload video via https://lew.la"""
     site_url = "https://lew.la/reddit/download"
     response = requests.post(site_url, data={
-        'url': url_to_upload
+        'url': url
     })
 
     uploaded_link = f"https://lew.la/reddit/clips/{response.text}.mp4"
     return uploaded_link
 
 
-def upload_via_ripsave(url_to_upload, submission):
-    """Upload video via https://ripsave.com"""
-    site_url = "https://ripsave.com"
-    post_link = site_url + "/getlink"
-    upload_request = requests.post(post_link, data={
-        'url': url_to_upload
-    })
+def upload_via_viddit(url):
+    """Upload video via https://viddit.red"""
+    parsed_url = urllib.parse.quote(url, safe='')
+    return f'https://viddit.red/?url={parsed_url}'
 
-    if upload_request.status_code != 200:
-        return ""
 
-    dash_video = str(submission.url)
-    dash_video_id = dash_video.replace('https://v.redd.it/', '')
+def upload_via_vredditcc(url):
+    """Upload video via https://vreddit.cc"""
+    site_url = 'https://vreddit.cc/parse'
+    response = requests.get(site_url, params={'v': url})
 
-    # Choose best quality available
-    quality_list = ["1080", "720", "480", "360", "240", "96"]
-    quality = ""
-    create_download_link = ""
-    for q in quality_list:
-        r = requests.get('https://ripsave.com/genlink', params={
-            's': 'reddit',
-            'v': f'{dash_video}/DASH_{q}',
-            'a': f'{dash_video}/audio',
-            'id': dash_video_id,
-            'q': q,
-            't': dash_video_id
-        })
-        if r.status_code == 200:
-            quality = q
-            break
-
-    if not quality:
-        return ""
-
-    # Create log to keep links active via external script
-    link_to_update = SETTINGS['DATA_PATH'] + f'ripsave/{dash_video_id}.txt'
-    create_log(link_to_update, create_download_link)
-
-    # Generate download link
-    download_link = f"{site_url}/download?t={dash_video_id}&f={dash_video_id}_{quality}.mp4"
-
-    return download_link
+    return f'https://vreddit.cc{response.text}'
 
 
 def check_audio(url):
