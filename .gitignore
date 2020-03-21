@@ -1,0 +1,5 @@
+praw.ini
+__pycache__/
+.idea
+**.db
+
