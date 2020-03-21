@@ -164,11 +164,10 @@ def upload_via_viddit(url):
 
 
 def upload_via_vredditcc(url):
-    """Upload video via https://vreddit.cc"""
-    site_url = 'https://vreddit.cc/parse'
-    response = requests.get(site_url, params={'v': url})
-
-    return f'https://vreddit.cc{response.text}'
+    """Generate video link for https://vreddit.cc"""
+    vreddit_video = re.compile(r'https?://v\.redd\.it/(\w+)')
+    vreddit_id = vreddit_video.findall(url)[0]
+    return "https://vreddit.cc/" + vreddit_id
 
 
 def check_audio(url):
