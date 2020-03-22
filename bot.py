@@ -3,7 +3,6 @@
 
 import os
 import re
-import time
 import urllib.parse
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -97,8 +96,6 @@ def main():
 
             reply = reply + announcement
             reply_to_user(item, reply, reddit, author)
-
-            time.sleep(2)
 
 
 def authenticate():
