@@ -55,22 +55,22 @@ def main():
                 continue
 
             # Get media and audio URL
-            media_url = create_media_url(submission, reddit)
-            if not media_url:
-                media_url = submission.url
+            vreddit_url = create_vreddit_url(submission, reddit)
+            if not vreddit_url:
+                vreddit_url = submission.url
                 reply_no_audio = ""
             else:
-                reply_no_audio = f'* [**Downloadable video link**]({media_url})'
+                reply_no_audio = f'* [**Downloadable video link**]({vreddit_url})'
 
-            audio_url = media_url.rpartition('/')[0] + '/audio'
+            audio_url = vreddit_url.rpartition('/')[0] + '/audio'
             has_audio = check_audio(audio_url)
             reply_audio_only = ""
             if has_audio:
                 reply_audio_only = f'* [Audio only]({audio_url})'
-                reply_no_audio = f'* [Downloadable soundless link]({media_url})'
+                reply_no_audio = f'* [Downloadable soundless link]({vreddit_url})'
 
             reply = reply_no_audio
-            if SETTINGS['ALWAYS_UPLOAD'] or has_audio or media_url == submission.url:
+            if SETTINGS['ALWAYS_UPLOAD'] or has_audio or vreddit_url == submission.url:
 
                 upload_path = SETTINGS['DATA_PATH'] + f'uploaded/{submission.id!s}.txt'
 
@@ -232,23 +232,20 @@ def is_url_valid(url):
         return False
 
 
-def create_media_url(submission, reddit):
+def create_vreddit_url(submission, reddit):
     """Read video url from reddit submission"""
-    media_url = "False"
     try:
-        media_url = submission.media['reddit_video']['fallback_url']
-        media_url = str(media_url)
+        return str(submission.media['reddit_video']['fallback_url'])
     except Exception as e:
-        print(e)
+        # Submission is a crosspost
         try:
             crosspost_id = submission.crosspost_parent.split('_')[1]
             s = reddit.submission(crosspost_id)
-            media_url = s.media['reddit_video']['fallback_url']
+            return s.media['reddit_video']['fallback_url']
         except Exception as f:
             print(f)
-            print("Can't read media_url, skipping")
-
-    return media_url
+            print("Can't read vreddit url, skipping")
+            return False
 
 
 def get_real_reddit_submission(reddit, url):
