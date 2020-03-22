@@ -57,7 +57,7 @@ To host your own video download bot, follow these simple example steps.
 * Fill in the bot configuration in [config.yaml](config.yaml)
 * Install the requirements
 
-      pip3 install -r requirements.txt
+      pip install -r requirements.txt
 
 ### Running the bot
 
@@ -71,7 +71,7 @@ To start the bot automatically in the background on Linux, add a cronjob with
    
 and add this line (replace <path> with path to your local repository)
 
-    @reboot python3 <path>/bot.py &>> /dev/null
+    @reboot python <path>/bot.py &>> /dev/null
     
 
 ## Contributing
@@ -99,10 +99,9 @@ johannes.pertl@edu.fh-joanneum.at
 
 ## Acknowledgements
 
-Special thanks to the owners of **www.viddit.red** and **www.lew.la**, who very kindly let me use their services! 
+Special thanks to the owners of **www.vreddit.cc**, **www.viddit.red** and **www.lew.la**, who very kindly let me use their services! 
 
 * [Praw](https://praw.readthedocs.io/en/latest)
-* [Pomfpy](https://github.com/AggressivelyMeows/Pomf.py)
 * [Readme Template](https://github.com/othneildrew/Best-README-Template/blob/master/README.md#acknowledgements)
 
 
