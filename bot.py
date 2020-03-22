@@ -79,7 +79,7 @@ def main():
                     # Create log file with uploaded link, named after the submission ID
                     create_log(upload_path, uploaded_url)
                     if "viddit" in uploaded_url:
-                        direct_link = "* [**Download** via https://viddit.red**]("
+                        direct_link = "* [**Download** via https://viddit.red]("
                     elif "vreddit" in uploaded_url:
                         direct_link = "* [**Download** via https://vreddit.cc]("
                     elif "lew.la" in uploaded_url:
