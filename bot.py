@@ -242,7 +242,7 @@ def create_vreddit_url(submission, reddit):
         except Exception as f:
             print(f)
             print("Can't read vreddit url, skipping")
-            return False
+            return ""
 
 
 def get_real_reddit_submission(reddit, url):
