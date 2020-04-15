@@ -99,7 +99,7 @@ johannes.pertl@edu.fh-joanneum.at
 
 ## Acknowledgements
 
-Special thanks to the owners of **www.vreddit.cc**, **www.viddit.red** and **www.lew.la**, who very kindly let me use their services! 
+Special thanks to the owners of **www.vreddit.cc**, **www.viddit.red**, **www.reddit.tube** and **www.lew.la**, who very kindly let me use their services! 
 
 * [Praw](https://praw.readthedocs.io/en/latest)
 * [Readme Template](https://github.com/othneildrew/Best-README-Template/blob/master/README.md#acknowledgements)
