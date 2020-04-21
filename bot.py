@@ -82,8 +82,6 @@ def main():
                         direct_link = "* [**Download** via https://viddit.red]("
                     elif "vreddit" in uploaded_url:
                         direct_link = "* [**Download** via https://vreddit.cc]("
-                    elif "lew.la" in uploaded_url:
-                        direct_link = "* [**Download** via https://lew.la]("
                     else:
                         direct_link = "* [**Download**]("
                     try:
@@ -124,14 +122,6 @@ def upload(submission, upload_path):
         print(e)
 
     try:
-        print("Uploading via lew.la")
-        uploaded_url = upload_via_lewla(permalink)
-        if is_url_valid(uploaded_url):
-            return uploaded_url
-    except Exception as e:
-        print(e)
-
-    try:
         print("Uploading via viddit.red")
         uploaded_url = upload_via_viddit(permalink)
         print(uploaded_url)
@@ -141,17 +131,6 @@ def upload(submission, upload_path):
         print(e)
 
     return uploaded_url
-
-
-def upload_via_lewla(url):
-    """Upload video via https://lew.la"""
-    site_url = "https://lew.la/reddit/download"
-    response = requests.post(site_url, data={
-        'url': url
-    })
-
-    uploaded_link = f"https://lew.la/reddit/clips/{response.text}.mp4"
-    return uploaded_link
 
 
 def upload_via_viddit(url):
