@@ -43,7 +43,7 @@ def main():
                 submission = item.submission
                 announcement = SETTINGS['ANNOUNCEMENT']
             else:  # match_type is message
-                submission = get_real_reddit_submission(reddit, match_type)
+                submission = get_original_submission(reddit, match_type)
                 announcement = ""
 
             try:
@@ -96,9 +96,10 @@ def type_of_item(item):
     return ""
 
 
-def get_real_reddit_submission(reddit, url):
+def get_original_submission(reddit, link):
+    """Gets the original reddit submission, as the link sometimes is a crosspost"""
     try:
-        link = re.sub('DASH.*', '', url)
+        link = re.sub('DASH.*', '', link)
         return reddit.submission(url=requests.get(link).url)
     except Exception as e:
         print(e)
@@ -123,7 +124,7 @@ def slow_upload(link):
     try:
         print("Uploading..")
         uploaded_url = upload_via_reddittube(link)
-        if is_url_valid(uploaded_url):
+        if is_link_valid(uploaded_url):
             return uploaded_url
     except Exception as e:
         print(e)
@@ -140,15 +141,15 @@ def upload_via_reddittube(link):
     return response_json['share_url']
 
 
-def is_url_valid(url):
+def is_link_valid(link):
     # Check if download is valid without downloading
-    if "reddit.tube" in url:
-        if requests.head(url).ok:
+    if "reddit.tube" in link:
+        if requests.head(link).ok:
             return True
         return False
 
     try:
-        status_code = urllib.request.urlopen(url, timeout=2).getcode()
+        status_code = urllib.request.urlopen(link, timeout=2).getcode()
         return status_code == 200
     except (HTTPError, URLError, ValueError):
         return False
@@ -179,7 +180,6 @@ def reply_to_user(item, reply, reddit, user):
 def reply_per_pm(item, reply, reddit, user):
     pm = reply + SETTINGS['FOOTER']
     subject = SETTINGS['PM_SUBJECT']
-    print("Can't comment. Replying per PM.")
     reddit.redditor(user).message(subject, pm)
     item.mark_read()
 
