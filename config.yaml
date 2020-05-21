@@ -1,25 +1,23 @@
 ---
-BOT_NAME: "u/vredditDownloader"
+BOT_NAME: 'ExampleBot'
 NO_FOOTER_SUBS: 
-  - 'furry_irl'
-  - 'pcmasterrace'
-  - 'bakchodi'
-  - 'pakistan'
+  - 'SUBREDDIT_TO_POST_WITHOUT_FOOTER'
+  - 'ANOTHER_SUB'
 PM_SUBS: 
-  - 'funny'
-  - 'mademesmile'
-  - 'Rainbow6'
-DATA_PATH: '/home/pi/bots/vreddit/data/'
+  - 'SUBREDDIT_TO_SEND_PM_INSTEAD_OF_COMMENT'
+  - 'ANOTHER_SUB'
 BLACKLIST_SUBS:
-  - 'The_Donald'
-BLACKLIST_USERS: 
-  - 'null'
-ANNOUNCEMENT_PM: "\n\nI also work with links sent by PM."
-ANNOUNCEMENT_RIPSAVE: "\n\nMention me again if the download link is down"
+  - 'SUB_TO_BLACKLIST'
+  - 'ANOTHER_SUB'
+BLACKLIST_USERS:
+  - 'USER_TO_BLACKLIST'
+  - 'ANOTHER_USER'
+DATA_PATH: 'data/'
+ANNOUNCEMENT: "\n\nI also work with links sent by PM."
 HEADER: "^I'm&#32;a&#32;Bot&#32;*bleep*&#32;*bloop*"
 INFO: "[**Info**](https://np.reddit.com/r/VredditDownloader/comments/b61y4i/info)"
 DONATE: "[**Support&#32;me&#32;❤**](https://www.paypal.me/synapsensalat)"
-INBOX_LIMIT: 20
+INBOX_LIMIT: MAXIMUM_NUMBER_OF_INBOX_ITEMS_TO_PROCESS
 
 # Determines if videos without sound get uploaded to external site or linked via direct v.redd.it link
 ALWAYS_UPLOAD: True
