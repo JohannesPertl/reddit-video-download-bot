@@ -3,14 +3,14 @@
 
 import os
 import re
+import time
 import urllib.parse
 from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
+from urllib.request import Request
 
 import praw
 import requests
 import yaml
-from praw.models import Comment, Message
 
 
 def load_configuration():
@@ -18,7 +18,8 @@ def load_configuration():
     with open(conf_file, encoding='utf8') as f:
         settings = yaml.safe_load(f)
     # load dependent configuration
-    settings['FOOTER'] = "\n\n&nbsp;\n ***  \n ^" + settings['INFO'] + "&#32;|&#32;" + settings['DONATE']
+    settings['FOOTER'] = "\n\n ***  \n" + settings['INFO_LINK'] + "&#32;|&#32;" + settings[
+        'DONATION_LINK'] + "&#32;|&#32;" + settings['GITHUB_LINK']
     return settings
 
 
@@ -32,7 +33,7 @@ def main():
         inbox = list(reddit.inbox.unread(limit=SETTINGS['INBOX_LIMIT']))
         inbox.reverse()
         for item in inbox:
-            author = str(item.author)
+            user = str(item.author)
 
             # Check requirements
             match_type = type_of_item(item)
@@ -40,188 +41,59 @@ def main():
                 continue
             elif match_type == "comment":
                 submission = item.submission
-                announcement = SETTINGS['ANNOUNCEMENT_PM']
+                announcement = SETTINGS['ANNOUNCEMENT']
             else:  # match_type is message
                 submission = get_real_reddit_submission(reddit, match_type)
                 announcement = ""
 
             try:
                 if not submission or "v.redd.it" not in str(submission.url) or str(
-                        submission.subreddit) in SETTINGS['BLACKLIST_SUBS'] or author in SETTINGS['BLACKLIST_USERS']:
+                        submission.subreddit) in SETTINGS['BLACKLIST_SUBS'] or user in SETTINGS['BLACKLIST_USERS']:
+                    item.mark_read()
                     continue
-            except Exception as e:
-                print(e)
+            except:
                 continue
 
-            # Get media and audio URL
-            vreddit_url = create_vreddit_url(submission, reddit)
-            if not vreddit_url:
-                vreddit_url = submission.url
-                reply_no_audio = ""
+            # Upload
+            reddit_link = "https://www.reddit.com" + submission.permalink
+            uploaded_link = upload(item, reddit_link)
+
+            if uploaded_link:
+                if "reddit.tube" in uploaded_link:
+                    link_format = "* [**Download** via https://reddit.tube]("
+                else:
+                    link_format = "* [**Download**]("
+
+                reply = link_format + uploaded_link + ")"
             else:
-                reply_no_audio = f'* [**Downloadable video link**]({vreddit_url})'
+                continue
 
-            audio_url = vreddit_url.rpartition('/')[0] + '/audio'
-            has_audio = check_audio(audio_url)
-            reply_audio_only = ""
-            if has_audio:
-                reply_audio_only = f'* [Audio only]({audio_url})'
-                reply_no_audio = f'* [Downloadable soundless link]({vreddit_url})'
-
-            reply = reply_no_audio
-            if SETTINGS['ALWAYS_UPLOAD'] or has_audio or vreddit_url == submission.url:
-
-                upload_path = SETTINGS['DATA_PATH'] + f'uploaded/{submission.id!s}.txt'
-
-                # Upload
-                uploaded_url = upload(submission, upload_path)
-                if uploaded_url:
-                    # Create log file with uploaded link, named after the submission ID
-                    create_log(upload_path, uploaded_url)
-                    if "viddit" in uploaded_url:
-                        direct_link = "* [**Download** via https://viddit.red]("
-                    elif "vreddit" in uploaded_url:
-                        direct_link = "* [**Download** via https://vreddit.cc]("
-                    else:
-                        direct_link = "* [**Download**]("
-                    try:
-                        reply_audio = direct_link + uploaded_url + ")"
-                        reply = f'{reply_audio}\n\n{reply_no_audio}\n\n{reply_audio_only}'
-                    except Exception as e:
-                        print(e)
-                elif has_audio:
-                    reply = "Sry, I can only provide a soundless video at the moment. Please try again later. \n\n" + reply_no_audio
-
-            reply = reply + announcement
-            reply_to_user(item, reply, reddit, author)
+            reply = SETTINGS['HEADER'] + reply + announcement
+            reply_to_user(item, reply, reddit, user)
 
 
 def authenticate():
     """Authenticate via praw.ini file, look at praw documentation for more info"""
     print('Authenticating...\n')
-    reddit = praw.Reddit('vreddit', user_agent='vreddit')
+    reddit = praw.Reddit('ExampleBot', user_agent=SETTINGS['USER_AGENT'])
     print(f'Authenticated as {reddit.user.me()}\n')
     return reddit
 
 
-def upload(submission, upload_path):
-    """Check if already uploaded before"""
-    print("Check uploaded log")
-    uploaded_url = uploaded_log_exists(upload_path)
-    if uploaded_url:
-        return uploaded_url
+def type_of_item(item):
+    """Check if item to reply to is comment or private message"""
+    body = str(item.body)
+    match_request = re.search(r"(?i)" + SETTINGS['BOT_NAME'], body)
+    match_link = re.search(
+        r"https?://(www\.)?[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_+.~#?&/=]*)", body)
 
-    permalink = "https://www.reddit.com" + submission.permalink
+    if item.was_comment and match_request:
+        return "comment"
 
-    try:
-        print("Uploading via vreddit.cc")
-        uploaded_url = upload_via_vredditcc(permalink)
-        if is_url_valid(uploaded_url):
-            return uploaded_url
-    except Exception as e:
-        print(e)
+    elif match_link:
+        return match_link[0]
 
-    try:
-        print("Uploading via viddit.red")
-        uploaded_url = upload_via_viddit(permalink)
-        print(uploaded_url)
-        if is_url_valid(uploaded_url):
-            return uploaded_url
-    except Exception as e:
-        print(e)
-
-    return uploaded_url
-
-
-def upload_via_viddit(url):
-    """Upload video via https://viddit.red"""
-    parsed_url = urllib.parse.quote(url, safe='')
-    return f'https://viddit.red/?url={parsed_url}'
-
-
-def upload_via_vredditcc(url):
-    """Generate video link for https://vreddit.cc"""
-    vreddit_video = re.compile(r'https?://v\.redd\.it/(\w+)')
-    vreddit_id = vreddit_video.findall(url)[0]
-    return "https://vreddit.cc/" + vreddit_id
-
-
-def check_audio(url):
-    """Check if v.redd.it link has audio"""
-    try:
-        req = Request(url)
-        resp = urlopen(req)
-        resp.read()
-        return True
-    except:
-        return False
-
-
-def create_log(file, content):
-    """Create .txt file that contains uploaded url"""
-    try:
-        print('Creating txt file.')
-        with open(file, "w+") as f:
-            f.write(content)
-    except Exception as e:
-        print(e)
-        print("ERROR: Can't create txt file.")
-
-
-def reply_per_pm(item, reply, reddit, user):
-    pm = reply + SETTINGS['FOOTER']
-    subject = "I couldn't reply to your comment so you get a PM instead :)"
-    print("Can't comment. Replying per PM.")
-    reddit.redditor(user).message(subject, pm)
-    item.mark_read()
-
-
-def reply_to_user(item, reply, reddit, user):
-    """Reply per comment"""
-    if str(item.subreddit) in SETTINGS['NO_FOOTER_SUBS']:
-        footer = ""
-    else:
-        footer = SETTINGS['FOOTER']
-
-    print('Replying... \n')
-    if str(item.subreddit) in SETTINGS['PM_SUBS']:
-        reply_per_pm(item, reply, reddit, user)
-    else:
-        try:
-            item.reply(reply + footer)
-            item.mark_read()
-
-        # Send PM if replying to the comment went wrong
-        except Exception as e:
-            print(e)
-            try:
-                reply_per_pm(item, reply, reddit, user)
-            except Exception as f:
-                print(f)
-
-
-def is_url_valid(url):
-    try:
-        status_code = urllib.request.urlopen(url, timeout=2).getcode()
-        return status_code == 200
-    except (HTTPError, URLError, ValueError):
-        return False
-
-
-def create_vreddit_url(submission, reddit):
-    """Read video url from reddit submission"""
-    try:
-        return str(submission.media['reddit_video']['fallback_url'])
-    except Exception as e:
-        # Submission is a crosspost
-        try:
-            crosspost_id = submission.crosspost_parent.split('_')[1]
-            s = reddit.submission(crosspost_id)
-            return s.media['reddit_video']['fallback_url']
-        except Exception as f:
-            print(f)
-            print("Can't read vreddit url, skipping")
-            return ""
+    return ""
 
 
 def get_real_reddit_submission(reddit, url):
@@ -233,39 +105,83 @@ def get_real_reddit_submission(reddit, url):
         return ""
 
 
-def type_of_item(item):
-    """Check if item to reply to is comment or private message"""
-    body = str(item.body)
-    match_text = re.search(r"(?i)" + SETTINGS['BOT_NAME'], body)
-    match_link = re.search(
-        r"https?://(www\.)?[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_+.~#?&/=]*)", body)
+def upload(item, link):
+    request_age = time.time() - item.created_utc
+    if request_age > SETTINGS['REQUEST_AGE_LIMIT'] * 60:
+        print("Bot is too slow, switching to fast upload methods")
+        return fast_upload(link)
 
-    if isinstance(item, Comment) and match_text:
-        return "comment"
-
-    elif isinstance(item, Message) and match_link:
-        return match_link[0]
-
-    return ""
+    return slow_upload(link)
 
 
-def uploaded_log_exists(upload_path):
-    """Check if video has been uploaded before"""
-    if not os.path.exists(upload_path):
-        return ""
+def fast_upload(link):
+    print("Linking directly to https://reddit.tube")
+    return link.replace(".com", ".tube")
 
+
+def slow_upload(link):
     try:
-        with open(upload_path, 'r') as content_file:
-            uploaded_url = content_file.read()
-            if not is_url_valid(uploaded_url):
-                print("Old URL not valid anymore, deleting..")
-                os.remove(upload_path)
-                return ""
+        print("Uploading..")
+        uploaded_url = upload_via_reddittube(link)
+        if is_url_valid(uploaded_url):
             return uploaded_url
     except Exception as e:
         print(e)
-        print("Couldn't get URL, continuing..")
-        return ""
+
+    return fast_upload(link)
+
+
+def upload_via_reddittube(link):
+    site_url = "https://reddit.tube/parse"
+    response = requests.get(site_url, params={
+        'url': link
+    })
+    response_json = response.json()
+    return response_json['share_url']
+
+
+def is_url_valid(url):
+    # Check if download is valid without downloading
+    if "reddit.tube" in url:
+        if requests.head(url).ok:
+            return True
+        return False
+
+    try:
+        status_code = urllib.request.urlopen(url, timeout=2).getcode()
+        return status_code == 200
+    except (HTTPError, URLError, ValueError):
+        return False
+
+
+def reply_to_user(item, reply, reddit, user):
+    if str(item.subreddit) in SETTINGS['NO_FOOTER_SUBS']:
+        footer = ""
+    else:
+        footer = SETTINGS['FOOTER']
+
+    if str(item.subreddit) in SETTINGS['PM_SUBS']:
+        reply_per_pm(item, reply, reddit, user)
+    else:
+        try:
+            item.reply(reply + footer)
+            item.mark_read()
+            print(f'Replied to {user} \n')
+        # Send PM if replying to the comment went wrong
+        except:
+            try:
+                reply_per_pm(item, reply, reddit, user)
+                print(f'Sent PM to {user} \n')
+            except Exception as e:
+                print(e)
+
+
+def reply_per_pm(item, reply, reddit, user):
+    pm = reply + SETTINGS['FOOTER']
+    subject = SETTINGS['PM_SUBJECT']
+    print("Can't comment. Replying per PM.")
+    reddit.redditor(user).message(subject, pm)
+    item.mark_read()
 
 
 if __name__ == '__main__':
