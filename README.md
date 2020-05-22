@@ -1,5 +1,3 @@
-
-
 <h1 align=center>VredditDownloader</h1>
 <p align=center>A bot for reddit that provides downloadable links for v.redd.it videos</p>
 
@@ -29,7 +27,7 @@ Currently, the bot account is [VredditDownloader](https://www.reddit.com/user/Vr
 
 ### Usage
 
-If you just want a quick download link, mention "u/VredditDownloader" as a comment under any video hosted on Reddit, or send a private message containing the link. The bot will reply within a few seconds.
+If you just want a quick download link, mention "u/VredditDownloader" as a comment under any video hosted on reddit, or send a private message containing the link. The bot will reply within a few seconds.
 
 You can find more info [at the bot's reddit profile](https://www.reddit.com/user/VredditDownloader/comments/cju1dg/info).
 
