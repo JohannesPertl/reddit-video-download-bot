@@ -26,50 +26,46 @@ def load_configuration():
 SETTINGS = load_configuration()
 
 
-def main():
-    reddit = authenticate()
-    while True:
-        # Search mentions in inbox
-        inbox = list(reddit.inbox.unread(limit=SETTINGS['INBOX_LIMIT']))
-        inbox.reverse()
-        for item in inbox:
-            user = str(item.author)
+def run_bot(reddit):
+    # Search mentions in inbox
+    inbox = list(reddit.inbox.unread(limit=SETTINGS['INBOX_LIMIT']))
+    inbox.reverse()
+    for request in inbox:
 
-            # Check requirements
-            match_type = type_of_item(item)
-            if not match_type:
+        # Determine type
+        request_type = type_of_request(request)
+
+        if not request_type:
+            continue
+
+        elif request_type == "comment":
+            submission = request.submission
+            announcement = SETTINGS['ANNOUNCEMENT_PM']
+        else:  # request_type is message
+            submission = get_original_submission(reddit, request_type)
+            announcement = ""
+
+        # Check requirements
+        try:
+            if not submission or "v.redd.it" not in submission.url \
+                    or submission.subreddit in SETTINGS['BLACKLIST_SUBS'] or request.author in SETTINGS['BLACKLIST_USERS']:
+                request.mark_read()
                 continue
-            elif match_type == "comment":
-                submission = item.submission
-                announcement = SETTINGS['ANNOUNCEMENT']
-            else:  # match_type is message
-                submission = get_original_submission(reddit, match_type)
-                announcement = ""
+        except:
+            continue
 
-            try:
-                if not submission or "v.redd.it" not in str(submission.url) or str(
-                        submission.subreddit) in SETTINGS['BLACKLIST_SUBS'] or user in SETTINGS['BLACKLIST_USERS']:
-                    item.mark_read()
-                    continue
-            except:
-                continue
+        # Upload
+        reddit_link = "https://www.reddit.com" + submission.permalink
+        uploaded_link = upload(request, reddit_link)
+        if uploaded_link:
+            reply = f'#[Download]({uploaded_link})'
+        else:
+            continue
 
-            # Upload
-            reddit_link = "https://www.reddit.com" + submission.permalink
-            uploaded_link = upload(item, reddit_link)
+        reply = SETTINGS['HEADER'] + reply + announcement
+        print(reply)
 
-            if uploaded_link:
-                if "reddit.tube" in uploaded_link:
-                    link_format = "* [**Download** via https://reddit.tube]("
-                else:
-                    link_format = "* [**Download**]("
-
-                reply = link_format + uploaded_link + ")"
-            else:
-                continue
-
-            reply = SETTINGS['HEADER'] + reply + announcement
-            reply_to_user(item, reply, reddit, user)
+        reply_to_user(request, reply, reddit, request.author)
 
 
 def authenticate():
@@ -80,7 +76,7 @@ def authenticate():
     return reddit
 
 
-def type_of_item(item):
+def type_of_request(item):
     """Check if item to reply to is comment or private message"""
     body = str(item.body)
     match_request = re.search(r"(?i)" + SETTINGS['BOT_NAME'], body)
@@ -185,4 +181,6 @@ def reply_per_pm(item, reply, reddit, user):
 
 
 if __name__ == '__main__':
-    main()
+    reddit = authenticate()
+    while True:
+        run_bot(reddit)

@@ -14,7 +14,7 @@ BLACKLIST_USERS:
   - 'USER_TO_BLACKLIST'
   - 'ANOTHER_USER'
 PM_SUBJECT: "I couldn't reply to your comment so you get a PM instead :)"
-ANNOUNCEMENT: "\n\nI also work with links sent by PM."
+ANNOUNCEMENT_PM: "\n\nI also work with links sent by PM."
 HEADER: "*beep. boop.* 🤖 I'm a bot that helps downloading videos!\n\n"
 INFO_LINK: "[**Info**](https://np.reddit.com/user/VredditDownloader/comments/cju1dg/info/)"
 DONATION_LINK: "[**Support&#32;me&#32;❤**](https://www.paypal.me/synapsensalat)"
