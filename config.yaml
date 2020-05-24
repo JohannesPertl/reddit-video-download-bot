@@ -1,5 +1,5 @@
 ---
-BOT_NAME: 'u/VredditDownloader'
+BOT_NAME: 'VredditDownloader'
 USER_AGENT: 'REDDIT_USER_AGENT'
 NO_FOOTER_SUBS: 
   - 'SUBREDDIT_TO_POST_WITHOUT_FOOTER'

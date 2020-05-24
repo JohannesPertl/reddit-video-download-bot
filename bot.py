@@ -57,7 +57,7 @@ def run_bot():
 def type_of_request(item):
     """Check if item to reply to is comment or private message"""
     body = str(item.body)
-    match_request = re.search(r"(?i)" + config['BOT_NAME'], body)
+    match_request = re.search(r"(?i) u/" + config['BOT_NAME'], body)
     match_link = re.search(
         r"https?://(www\.)?[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_+.~#?&/=]*)", body)
 
@@ -171,7 +171,7 @@ def load_configuration():
 def authenticate():
     """Authenticate via praw.ini file, look at praw documentation for more info"""
     print('Authenticating...\n')
-    reddit = praw.Reddit('ExampleBot', user_agent=config['USER_AGENT'])
+    reddit = praw.Reddit(site_name=config['BOT_NAME'], user_agent=config['USER_AGENT'])
     print(f'Authenticated as {reddit.user.me()}\n')
     return reddit
 
