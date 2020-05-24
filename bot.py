@@ -19,18 +19,7 @@ def run_bot():
     inbox.reverse()
     for message in inbox:
 
-        # Determine type
-        request_type = type_of_request(message)
-
-        if not request_type:
-            continue
-
-        elif request_type == "comment":
-            submission = message.submission
-            announcement = config['ANNOUNCEMENT_PM']
-        else:  # request_type is message
-            submission = get_original_submission(request_type)
-            announcement = ""
+        submission = get_user_request_submission(message)
 
         # Check requirements
         try:
@@ -49,39 +38,36 @@ def run_bot():
         else:
             continue
 
+        announcement = ''
+        if message.was_comment:
+            announcement = config['ANNOUNCEMENT_PM']
         reply = config['HEADER'] + reply + announcement
 
-        reply_to_user(message, reply, message.author)
+        print(reply)
+        # reply_to_user(message, reply, message.author)
 
 
-def type_of_request(item):
-    """Check if item to reply to is comment or private message"""
-    body = str(item.body)
+def get_user_request_submission(message):
+    body = str(message.body)
     match_request = re.search(r"(?i) u/" + config['BOT_NAME'], body)
     match_link = re.search(
         r"https?://(www\.)?[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_+.~#?&/=]*)", body)
 
-    if item.was_comment and match_request:
-        return "comment"
+    if message.was_comment and match_request:
+        return message.submission
 
     elif match_link:
-        return match_link[0]
+        try:
+            link = re.sub('DASH.*', '', match_link[0])
+            return reddit.submission(url=requests.get(link).url)
+        except:
+            return ""
 
     return ""
 
 
-def get_original_submission(link):
-    """Gets the original reddit submission, as the link sometimes is a crosspost"""
-    try:
-        link = re.sub('DASH.*', '', link)
-        return reddit.submission(url=requests.get(link).url)
-    except Exception as e:
-        print(e)
-        return ""
-
-
-def upload(item, link):
-    request_age = time.time() - item.created_utc
+def upload(message, link):
+    request_age = time.time() - message.created_utc
     if request_age > config['REQUEST_AGE_LIMIT'] * 60:
         print("Bot is too slow, switching to fast upload methods")
         return fast_upload(link)
@@ -129,33 +115,33 @@ def is_link_valid(link):
         return False
 
 
-def reply_to_user(item, reply, user):
-    if str(item.subreddit) in config['NO_FOOTER_SUBS']:
+def reply_to_user(message, reply, user):
+    if str(message.subreddit) in config['NO_FOOTER_SUBS']:
         footer = ""
     else:
         footer = config['FOOTER']
 
-    if str(item.subreddit) in config['PM_SUBS']:
-        reply_per_pm(item, reply, user)
+    if str(message.subreddit) in config['PM_SUBS']:
+        reply_per_pm(message, reply, user)
     else:
         try:
-            item.reply(reply + footer)
-            item.mark_read()
+            message.reply(reply + footer)
+            message.mark_read()
             print(f'Replied to {user} \n')
         # Send PM if replying to the comment went wrong
         except:
             try:
-                reply_per_pm(item, reply, user)
+                reply_per_pm(message, reply, user)
                 print(f'Sent PM to {user} \n')
             except Exception as e:
                 print(e)
 
 
-def reply_per_pm(item, reply, user):
+def reply_per_pm(message, reply, user):
     pm = reply + config['FOOTER']
     subject = config['PM_SUBJECT']
     reddit.redditor(user).message(subject, pm)
-    item.mark_read()
+    message.mark_read()
 
 
 def load_configuration():
