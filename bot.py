@@ -18,33 +18,35 @@ def run_bot():
     inbox = list(reddit.inbox.unread(limit=config['INBOX_LIMIT']))
     inbox.reverse()
     for message in inbox:
+        process_message(message)
 
-        submission = get_user_request_submission(message)
 
-        # Check requirements
-        try:
-            if not submission or "v.redd.it" not in submission.url \
-                    or submission.subreddit in config['BLACKLIST_SUBS'] or message.author in config['BLACKLIST_USERS']:
-                message.mark_read()
-                continue
-        except:
-            continue
+def process_message(message):
+    submission = get_user_request_submission(message)
 
-        # Upload
-        reddit_link = "https://www.reddit.com" + submission.permalink
-        uploaded_link = upload(message, reddit_link)
-        if uploaded_link:
-            reply = f'#[Download]({uploaded_link})'
-        else:
-            continue
+    # Check requirements
+    try:
+        if not submission or "v.redd.it" not in submission.url \
+                or submission.subreddit in config['BLACKLIST_SUBS'] or message.author in config['BLACKLIST_USERS']:
+            message.mark_read()
+            return
+    except:
+        return
 
-        announcement = ''
-        if message.was_comment:
-            announcement = config['ANNOUNCEMENT_PM']
-        reply = config['HEADER'] + reply + announcement
+    # Upload
+    reddit_link = "https://www.reddit.com" + submission.permalink
+    uploaded_link = upload(message, reddit_link)
+    if uploaded_link:
+        reply = f'#[Download]({uploaded_link})'
+    else:
+        return
 
-        print(reply)
-        # reply_to_user(message, reply, message.author)
+    announcement = ''
+    if message.was_comment:
+        announcement = config['ANNOUNCEMENT_PM']
+    reply = config['HEADER'] + reply + announcement
+
+    reply_to_user(message, reply, message.author)
 
 
 def get_user_request_submission(message):
