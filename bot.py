@@ -26,7 +26,7 @@ def load_configuration():
 SETTINGS = load_configuration()
 
 
-def run_bot(reddit):
+def run_bot():
     # Search mentions in inbox
     inbox = list(reddit.inbox.unread(limit=SETTINGS['INBOX_LIMIT']))
     inbox.reverse()
@@ -42,7 +42,7 @@ def run_bot(reddit):
             submission = request.submission
             announcement = SETTINGS['ANNOUNCEMENT_PM']
         else:  # request_type is message
-            submission = get_original_submission(reddit, request_type)
+            submission = get_original_submission(request_type)
             announcement = ""
 
         # Check requirements
@@ -65,7 +65,7 @@ def run_bot(reddit):
         reply = SETTINGS['HEADER'] + reply + announcement
         print(reply)
 
-        reply_to_user(request, reply, reddit, request.author)
+        reply_to_user(request, reply, request.author)
 
 
 def authenticate():
@@ -92,7 +92,7 @@ def type_of_request(item):
     return ""
 
 
-def get_original_submission(reddit, link):
+def get_original_submission(link):
     """Gets the original reddit submission, as the link sometimes is a crosspost"""
     try:
         link = re.sub('DASH.*', '', link)
@@ -151,7 +151,7 @@ def is_link_valid(link):
         return False
 
 
-def reply_to_user(item, reply, reddit, user):
+def reply_to_user(item, reply, user):
     if str(item.subreddit) in SETTINGS['NO_FOOTER_SUBS']:
         footer = ""
     else:
@@ -167,13 +167,13 @@ def reply_to_user(item, reply, reddit, user):
         # Send PM if replying to the comment went wrong
         except:
             try:
-                reply_per_pm(item, reply, reddit, user)
+                reply_per_pm(item, reply, user)
                 print(f'Sent PM to {user} \n')
             except Exception as e:
                 print(e)
 
 
-def reply_per_pm(item, reply, reddit, user):
+def reply_per_pm(item, reply, user):
     pm = reply + SETTINGS['FOOTER']
     subject = SETTINGS['PM_SUBJECT']
     reddit.redditor(user).message(subject, pm)
@@ -183,4 +183,4 @@ def reply_per_pm(item, reply, reddit, user):
 if __name__ == '__main__':
     reddit = authenticate()
     while True:
-        run_bot(reddit)
+        run_bot()
