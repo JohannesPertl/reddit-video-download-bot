@@ -17,16 +17,16 @@ def run_bot():
     # Search mentions in inbox
     inbox = list(reddit.inbox.unread(limit=config['INBOX_LIMIT']))
     inbox.reverse()
-    for request in inbox:
+    for message in inbox:
 
         # Determine type
-        request_type = type_of_request(request)
+        request_type = type_of_request(message)
 
         if not request_type:
             continue
 
         elif request_type == "comment":
-            submission = request.submission
+            submission = message.submission
             announcement = config['ANNOUNCEMENT_PM']
         else:  # request_type is message
             submission = get_original_submission(request_type)
@@ -35,15 +35,15 @@ def run_bot():
         # Check requirements
         try:
             if not submission or "v.redd.it" not in submission.url \
-                    or submission.subreddit in config['BLACKLIST_SUBS'] or request.author in config['BLACKLIST_USERS']:
-                request.mark_read()
+                    or submission.subreddit in config['BLACKLIST_SUBS'] or message.author in config['BLACKLIST_USERS']:
+                message.mark_read()
                 continue
         except:
             continue
 
         # Upload
         reddit_link = "https://www.reddit.com" + submission.permalink
-        uploaded_link = upload(request, reddit_link)
+        uploaded_link = upload(message, reddit_link)
         if uploaded_link:
             reply = f'#[Download]({uploaded_link})'
         else:
@@ -51,7 +51,7 @@ def run_bot():
 
         reply = config['HEADER'] + reply + announcement
 
-        reply_to_user(request, reply, request.author)
+        reply_to_user(message, reply, message.author)
 
 
 def type_of_request(item):
@@ -171,9 +171,9 @@ def load_configuration():
 def authenticate():
     """Authenticate via praw.ini file, look at praw documentation for more info"""
     print('Authenticating...\n')
-    reddit = praw.Reddit(site_name=config['BOT_NAME'], user_agent=config['USER_AGENT'])
-    print(f'Authenticated as {reddit.user.me()}\n')
-    return reddit
+    authentication = praw.Reddit(site_name=config['BOT_NAME'], user_agent=config['USER_AGENT'])
+    print(f'Authenticated as {authentication.user.me()}\n')
+    return authentication
 
 
 if __name__ == '__main__':
