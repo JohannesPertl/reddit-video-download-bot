@@ -13,22 +13,9 @@ import requests
 import yaml
 
 
-def load_configuration():
-    conf_file = os.path.join(os.path.dirname(__file__), "config.yaml")
-    with open(conf_file, encoding='utf8') as f:
-        settings = yaml.safe_load(f)
-    # load dependent configuration
-    settings['FOOTER'] = "\n\n ***  \n" + settings['INFO_LINK'] + "&#32;|&#32;" + settings[
-        'DONATION_LINK'] + "&#32;|&#32;" + settings['GITHUB_LINK']
-    return settings
-
-
-SETTINGS = load_configuration()
-
-
 def run_bot():
     # Search mentions in inbox
-    inbox = list(reddit.inbox.unread(limit=SETTINGS['INBOX_LIMIT']))
+    inbox = list(reddit.inbox.unread(limit=config['INBOX_LIMIT']))
     inbox.reverse()
     for request in inbox:
 
@@ -40,7 +27,7 @@ def run_bot():
 
         elif request_type == "comment":
             submission = request.submission
-            announcement = SETTINGS['ANNOUNCEMENT_PM']
+            announcement = config['ANNOUNCEMENT_PM']
         else:  # request_type is message
             submission = get_original_submission(request_type)
             announcement = ""
@@ -48,7 +35,7 @@ def run_bot():
         # Check requirements
         try:
             if not submission or "v.redd.it" not in submission.url \
-                    or submission.subreddit in SETTINGS['BLACKLIST_SUBS'] or request.author in SETTINGS['BLACKLIST_USERS']:
+                    or submission.subreddit in config['BLACKLIST_SUBS'] or request.author in config['BLACKLIST_USERS']:
                 request.mark_read()
                 continue
         except:
@@ -62,24 +49,15 @@ def run_bot():
         else:
             continue
 
-        reply = SETTINGS['HEADER'] + reply + announcement
-        print(reply)
+        reply = config['HEADER'] + reply + announcement
 
         reply_to_user(request, reply, request.author)
-
-
-def authenticate():
-    """Authenticate via praw.ini file, look at praw documentation for more info"""
-    print('Authenticating...\n')
-    reddit = praw.Reddit('ExampleBot', user_agent=SETTINGS['USER_AGENT'])
-    print(f'Authenticated as {reddit.user.me()}\n')
-    return reddit
 
 
 def type_of_request(item):
     """Check if item to reply to is comment or private message"""
     body = str(item.body)
-    match_request = re.search(r"(?i)" + SETTINGS['BOT_NAME'], body)
+    match_request = re.search(r"(?i)" + config['BOT_NAME'], body)
     match_link = re.search(
         r"https?://(www\.)?[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_+.~#?&/=]*)", body)
 
@@ -104,7 +82,7 @@ def get_original_submission(link):
 
 def upload(item, link):
     request_age = time.time() - item.created_utc
-    if request_age > SETTINGS['REQUEST_AGE_LIMIT'] * 60:
+    if request_age > config['REQUEST_AGE_LIMIT'] * 60:
         print("Bot is too slow, switching to fast upload methods")
         return fast_upload(link)
 
@@ -152,13 +130,13 @@ def is_link_valid(link):
 
 
 def reply_to_user(item, reply, user):
-    if str(item.subreddit) in SETTINGS['NO_FOOTER_SUBS']:
+    if str(item.subreddit) in config['NO_FOOTER_SUBS']:
         footer = ""
     else:
-        footer = SETTINGS['FOOTER']
+        footer = config['FOOTER']
 
-    if str(item.subreddit) in SETTINGS['PM_SUBS']:
-        reply_per_pm(item, reply, reddit, user)
+    if str(item.subreddit) in config['PM_SUBS']:
+        reply_per_pm(item, reply, user)
     else:
         try:
             item.reply(reply + footer)
@@ -174,13 +152,32 @@ def reply_to_user(item, reply, user):
 
 
 def reply_per_pm(item, reply, user):
-    pm = reply + SETTINGS['FOOTER']
-    subject = SETTINGS['PM_SUBJECT']
+    pm = reply + config['FOOTER']
+    subject = config['PM_SUBJECT']
     reddit.redditor(user).message(subject, pm)
     item.mark_read()
 
 
+def load_configuration():
+    conf_file = os.path.join(os.path.dirname(__file__), "config.yaml")
+    with open(conf_file, encoding='utf8') as f:
+        configuration = yaml.safe_load(f)
+    # load dependent configuration
+    configuration['FOOTER'] = "\n\n ***  \n" + configuration['INFO_LINK'] + "&#32;|&#32;" + configuration[
+        'DONATION_LINK'] + "&#32;|&#32;" + configuration['GITHUB_LINK']
+    return configuration
+
+
+def authenticate():
+    """Authenticate via praw.ini file, look at praw documentation for more info"""
+    print('Authenticating...\n')
+    reddit = praw.Reddit('ExampleBot', user_agent=config['USER_AGENT'])
+    print(f'Authenticated as {reddit.user.me()}\n')
+    return reddit
+
+
 if __name__ == '__main__':
+    config = load_configuration()
     reddit = authenticate()
     while True:
         run_bot()
