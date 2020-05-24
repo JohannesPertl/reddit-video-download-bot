@@ -9,9 +9,6 @@
 * [Getting Started](#getting-started)
   * [Prerequisites](#prerequisites)
   * [Installation](#installation)
-  * [Running the bot](#running-the-bot)
-  * [Start automatically](#start-automatically-at-reboot)
-* [Contributing](#contributing)
 * [License](#license)
 * [Contact](#contact)
 * [Acknowledgements](#acknowledgements)
@@ -27,7 +24,7 @@ Currently, the bot account is [VredditDownloader](https://www.reddit.com/user/Vr
 
 ### Usage
 
-If you just want a quick download link, mention "u/VredditDownloader" as a comment under any video hosted on reddit, or send a private message containing the link. The bot will reply within a few seconds.
+If you just want a quick download link, mention "u/VredditDownloader" as a comment under any reddit post or link containing a video, or send a private message containing the link. The bot will reply within a few seconds.
 
 You can find more info [at the bot's reddit profile](https://www.reddit.com/user/VredditDownloader/comments/cju1dg/info).
 
@@ -50,39 +47,12 @@ To host your own video download bot, follow these simple example steps.
 
       git clone https://github.com/JohannesPertl/vreddit-download-bot.git
     
-* Create an app [here](https://www.reddit.com/prefs/apps)
+* Create a reddit app
    * Paste the credentials into the [praw.ini file](praw.ini)
 * Fill in the bot configuration in [config.yaml](config.yaml)
 * Install the requirements
 
       pip install -r requirements.txt
-
-### Running the bot
-
-    python3 -i bot.py
-    
-### Start automatically at reboot
-
-To start the bot automatically in the background on Linux, add a cronjob with
-
-    crontab -e
-   
-and add this line (replace <path> with path to your local repository)
-
-    @reboot python <path>/bot.py &>> /dev/null
-    
-
-## Contributing
-
-Contributions are what make the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are **greatly appreciated**.
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/SomeFeature`)
-3. Commit your Changes (`git commit -m 'Add some Feature'`)
-4. Push to the Branch (`git push origin feature/SomeFeature`)
-5. Open a Pull Request
-
-
 
 
 ## License
