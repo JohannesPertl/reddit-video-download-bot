@@ -1,3 +1,4 @@
+prawcore
 certifi
 requests
 praw

@@ -11,104 +11,67 @@ from urllib.request import Request
 import praw
 import requests
 import yaml
+from prawcore import NotFound
 
 
-def load_configuration():
-    conf_file = os.path.join(os.path.dirname(__file__), "config.yaml")
-    with open(conf_file, encoding='utf8') as f:
-        settings = yaml.safe_load(f)
-    # load dependent configuration
-    settings['FOOTER'] = "\n\n ***  \n" + settings['INFO_LINK'] + "&#32;|&#32;" + settings[
-        'DONATION_LINK'] + "&#32;|&#32;" + settings['GITHUB_LINK']
-    return settings
+def run_bot():
+    # Search mentions in inbox
+    inbox = list(reddit.inbox.unread(limit=config['INBOX_LIMIT']))
+    inbox.reverse()
+    for message in inbox:
+        try:
+            process_message(message)
+        except NotFound:
+            pass
+        except Exception as e:
+            print(e)
 
 
-SETTINGS = load_configuration()
+def process_message(message):
+    submission = get_user_request_submission(message)
+
+    if not valid_requirements(submission, message):
+        message.mark_read()
+        return
+
+    # Upload
+    reddit_link = "https://www.reddit.com" + submission.permalink
+    uploaded_link = upload(message, reddit_link)
+    if uploaded_link:
+        reply = f"##[{config['DOWNLOAD_TEXT']}]({uploaded_link})"
+    else:
+        return
+
+    announcement = ''
+    if message.was_comment:
+        announcement = config['ANNOUNCEMENT_PM']
+    reply = config['HEADER'] + reply + announcement
+
+    reply_to_user(message, reply, message.author)
 
 
-def main():
-    reddit = authenticate()
-    while True:
-        # Search mentions in inbox
-        inbox = list(reddit.inbox.unread(limit=SETTINGS['INBOX_LIMIT']))
-        inbox.reverse()
-        for item in inbox:
-            user = str(item.author)
-
-            # Check requirements
-            match_type = type_of_item(item)
-            if not match_type:
-                continue
-            elif match_type == "comment":
-                submission = item.submission
-                announcement = SETTINGS['ANNOUNCEMENT']
-            else:  # match_type is message
-                submission = get_original_submission(reddit, match_type)
-                announcement = ""
-
-            try:
-                if not submission or "v.redd.it" not in str(submission.url) or str(
-                        submission.subreddit) in SETTINGS['BLACKLIST_SUBS'] or user in SETTINGS['BLACKLIST_USERS']:
-                    item.mark_read()
-                    continue
-            except:
-                continue
-
-            # Upload
-            reddit_link = "https://www.reddit.com" + submission.permalink
-            uploaded_link = upload(item, reddit_link)
-
-            if uploaded_link:
-                if "reddit.tube" in uploaded_link:
-                    link_format = "* [**Download** via https://reddit.tube]("
-                else:
-                    link_format = "* [**Download**]("
-
-                reply = link_format + uploaded_link + ")"
-            else:
-                continue
-
-            reply = SETTINGS['HEADER'] + reply + announcement
-            reply_to_user(item, reply, reddit, user)
-
-
-def authenticate():
-    """Authenticate via praw.ini file, look at praw documentation for more info"""
-    print('Authenticating...\n')
-    reddit = praw.Reddit('ExampleBot', user_agent=SETTINGS['USER_AGENT'])
-    print(f'Authenticated as {reddit.user.me()}\n')
-    return reddit
-
-
-def type_of_item(item):
-    """Check if item to reply to is comment or private message"""
-    body = str(item.body)
-    match_request = re.search(r"(?i)" + SETTINGS['BOT_NAME'], body)
+def get_user_request_submission(message):
+    body = str(message.body)
+    match_request = re.search(r"(?i)u/" + config['BOT_NAME'], body)
     match_link = re.search(
         r"https?://(www\.)?[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_+.~#?&/=]*)", body)
 
-    if item.was_comment and match_request:
-        return "comment"
+    if message.was_comment and match_request:
+        return message.submission
 
     elif match_link:
-        return match_link[0]
-
-    return ""
-
-
-def get_original_submission(reddit, link):
-    """Gets the original reddit submission, as the link sometimes is a crosspost"""
-    try:
-        link = re.sub('DASH.*', '', link)
+        link = re.sub('DASH.*', '', match_link[0])
         return reddit.submission(url=requests.get(link).url)
-    except Exception as e:
-        print(e)
-        return ""
 
 
-def upload(item, link):
-    request_age = time.time() - item.created_utc
-    if request_age > SETTINGS['REQUEST_AGE_LIMIT'] * 60:
+def valid_requirements(submission, message):
+    return submission and "v.redd.it" in submission.url and submission.subreddit not in config[
+        'BLACKLIST_SUBS'] and message.author not in config['BLACKLIST_USERS']
+
+
+def upload(message, link):
+    request_age = time.time() - message.created_utc
+    if request_age > config['REQUEST_AGE_LIMIT'] * 60:
         print("Bot is too slow, switching to fast upload methods")
         return fast_upload(link)
 
@@ -155,34 +118,55 @@ def is_link_valid(link):
         return False
 
 
-def reply_to_user(item, reply, reddit, user):
-    if str(item.subreddit) in SETTINGS['NO_FOOTER_SUBS']:
+def reply_to_user(message, reply, user):
+    if str(message.subreddit) in config['NO_FOOTER_SUBS']:
         footer = ""
     else:
-        footer = SETTINGS['FOOTER']
+        footer = config['FOOTER']
 
-    if str(item.subreddit) in SETTINGS['PM_SUBS']:
-        reply_per_pm(item, reply, reddit, user)
+    if str(message.subreddit) in config['PM_SUBS']:
+        reply_per_pm(message, reply, user)
     else:
         try:
-            item.reply(reply + footer)
-            item.mark_read()
+            message.reply(reply + footer)
+            message.mark_read()
             print(f'Replied to {user} \n')
         # Send PM if replying to the comment went wrong
         except:
             try:
-                reply_per_pm(item, reply, reddit, user)
+                reply_per_pm(message, reply, user)
                 print(f'Sent PM to {user} \n')
             except Exception as e:
                 print(e)
 
 
-def reply_per_pm(item, reply, reddit, user):
-    pm = reply + SETTINGS['FOOTER']
-    subject = SETTINGS['PM_SUBJECT']
-    reddit.redditor(user).message(subject, pm)
-    item.mark_read()
+def reply_per_pm(message, reply, user):
+    pm = reply + config['FOOTER']
+    subject = config['PM_SUBJECT']
+    user.message(subject, pm)
+    message.mark_read()
+
+
+def load_configuration():
+    conf_file = os.path.join(os.path.dirname(__file__), "config.yaml")
+    with open(conf_file, encoding='utf8') as f:
+        configuration = yaml.safe_load(f)
+    # load dependent configuration
+    configuration['FOOTER'] = "\n\n ***  \n" + configuration['INFO_LINK'] + "&#32;|&#32;" + configuration[
+        'DONATION_LINK'] + "&#32;|&#32;" + configuration['GITHUB_LINK']
+    return configuration
+
+
+def authenticate():
+    """Authenticate via praw.ini file, look at praw documentation for more info"""
+    print('Authenticating...\n')
+    authentication = praw.Reddit(site_name=config['BOT_NAME'], user_agent=config['USER_AGENT'])
+    print(f'Authenticated as {authentication.user.me()}\n')
+    return authentication
 
 
 if __name__ == '__main__':
-    main()
+    config = load_configuration()
+    reddit = authenticate()
+    while True:
+        run_bot()
