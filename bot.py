@@ -18,19 +18,20 @@ def run_bot():
     inbox = list(reddit.inbox.unread(limit=config['INBOX_LIMIT']))
     inbox.reverse()
     for message in inbox:
-        process_message(message)
+        try:
+            process_message(message)
+        except Exception as e:
+            print(e)
 
 
 def process_message(message):
     submission = get_user_request_submission(message)
 
     # Check requirements
-    try:
-        if not submission or "v.redd.it" not in submission.url \
-                or submission.subreddit in config['BLACKLIST_SUBS'] or message.author in config['BLACKLIST_USERS']:
-            message.mark_read()
-            return
-    except:
+
+    if not submission or "v.redd.it" not in submission.url \
+            or submission.subreddit in config['BLACKLIST_SUBS'] or message.author in config['BLACKLIST_USERS']:
+        message.mark_read()
         return
 
     # Upload
@@ -51,7 +52,7 @@ def process_message(message):
 
 def get_user_request_submission(message):
     body = str(message.body)
-    match_request = re.search(r"(?i) u/" + config['BOT_NAME'], body)
+    match_request = re.search(r"(?i)u/" + config['BOT_NAME'], body)
     match_link = re.search(
         r"https?://(www\.)?[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_+.~#?&/=]*)", body)
 
@@ -142,7 +143,7 @@ def reply_to_user(message, reply, user):
 def reply_per_pm(message, reply, user):
     pm = reply + config['FOOTER']
     subject = config['PM_SUBJECT']
-    reddit.redditor(user).message(subject, pm)
+    user.message(subject, pm)
     message.mark_read()
 
 
