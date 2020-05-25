@@ -48,7 +48,7 @@ To host your own video download bot, follow these simple example steps.
       git clone https://github.com/JohannesPertl/vreddit-download-bot.git
     
 * Create a reddit app
-   * Paste the credentials into the [praw.ini file](praw.ini)
+* Fill in the credentials in a [praw.ini file](https://praw.readthedocs.io/en/latest/getting_started/configuration/prawini.html)
 * Fill in the bot configuration in [config.yaml](config.yaml)
 * Install the requirements
 
