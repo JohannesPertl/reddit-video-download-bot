@@ -27,10 +27,7 @@ def run_bot():
 def process_message(message):
     submission = get_user_request_submission(message)
 
-    # Check requirements
-
-    if not submission or "v.redd.it" not in submission.url \
-            or submission.subreddit in config['BLACKLIST_SUBS'] or message.author in config['BLACKLIST_USERS']:
+    if not valid_requirements(submission, message):
         message.mark_read()
         return
 
@@ -67,6 +64,11 @@ def get_user_request_submission(message):
             return ""
 
     return ""
+
+
+def valid_requirements(submission, message):
+    return submission and "v.redd.it" in submission.url and submission.subreddit not in config[
+        'BLACKLIST_SUBS'] and message.author not in config['BLACKLIST_USERS']
 
 
 def upload(message, link):
