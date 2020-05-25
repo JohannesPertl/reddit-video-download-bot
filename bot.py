@@ -38,7 +38,7 @@ def process_message(message):
     reddit_link = "https://www.reddit.com" + submission.permalink
     uploaded_link = upload(message, reddit_link)
     if uploaded_link:
-        reply = f'#[Download]({uploaded_link})'
+        reply = f"##[{config['DOWNLOAD_TEXT']}]({uploaded_link})"
     else:
         return
 

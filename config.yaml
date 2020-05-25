@@ -16,8 +16,9 @@ BLACKLIST_USERS:
 PM_SUBJECT: "I couldn't reply to your comment so you get a PM instead :)"
 ANNOUNCEMENT_PM: "\n\nI also work with links sent by PM."
 HEADER: "*beep. boop.* 🤖 I'm a bot that helps downloading videos!\n\n"
+DOWNLOAD_TEXT: "Download"
 INFO_LINK: "[**Info**](https://np.reddit.com/user/VredditDownloader/comments/cju1dg/info/)"
 DONATION_LINK: "[**Support&#32;me&#32;❤**](https://www.paypal.me/synapsensalat)"
 GITHUB_LINK: "[**Github**](https://github.com/JohannesPertl/vreddit-downloader)"
-INBOX_LIMIT: 20
-REQUEST_AGE_LIMIT: 10
+INBOX_LIMIT: 1000
+REQUEST_AGE_LIMIT: 10000
