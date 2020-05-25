@@ -11,6 +11,7 @@ from urllib.request import Request
 import praw
 import requests
 import yaml
+from prawcore import NotFound
 
 
 def run_bot():
@@ -20,6 +21,8 @@ def run_bot():
     for message in inbox:
         try:
             process_message(message)
+        except NotFound:
+            pass
         except Exception as e:
             print(e)
 
@@ -57,13 +60,8 @@ def get_user_request_submission(message):
         return message.submission
 
     elif match_link:
-        try:
-            link = re.sub('DASH.*', '', match_link[0])
-            return reddit.submission(url=requests.get(link).url)
-        except:
-            return ""
-
-    return ""
+        link = re.sub('DASH.*', '', match_link[0])
+        return reddit.submission(url=requests.get(link).url)
 
 
 def valid_requirements(submission, message):
