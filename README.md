@@ -17,8 +17,6 @@
 
 Videos hosted on the social media platform www.reddit.com are nearly impossible to download, especially with sound. To make sharing easier, I decided to write my own bot that provides an easy way to download them. 
 
-Since 2018, I run it on my own Raspberry Pi at home.
-
 Currently, the bot account is [VredditDownloader](https://www.reddit.com/user/VredditDownloader). 
 
 
