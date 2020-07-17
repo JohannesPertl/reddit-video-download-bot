@@ -1,4 +1,4 @@
-<h1 align=center>VredditDownloader</h1>
+<h1 align=center>Vreddit Download Bot</h1>
 <p align=center>A bot for reddit that provides downloadable links for v.redd.it videos</p>
 
 
@@ -16,15 +16,6 @@
 ## About The Project
 
 Videos hosted on the social media platform www.reddit.com are nearly impossible to download, especially with sound. To make sharing easier, I decided to write my own bot that provides an easy way to download them. 
-
-Currently, the bot account is [VredditDownloader](https://www.reddit.com/user/VredditDownloader). 
-
-
-### Usage
-
-If you just want a quick download link, mention "u/VredditDownloader" as a comment under any reddit post or link containing a video, or send a private message containing the link. The bot will reply within a few seconds.
-
-You can find more info [at the bot's reddit profile](https://www.reddit.com/user/VredditDownloader/comments/cju1dg/info).
 
 
 ## Getting Started
