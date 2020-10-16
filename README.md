@@ -1,35 +1,26 @@
-<h1 align=center>Vreddit Download Bot</h1>
-<p align=center>A bot for reddit that provides downloadable links for v.redd.it videos</p>
+<h1 align=center>Video Download Bot for reddit</h1>
+<p align=center>A bot for reddit that provides downloadable links for videos by using an external service</p>
 
 
 ## Table of Contents
 
-* [About the Project](#about-the-project)
-  * [Usage](#usage) 
-* [Getting Started](#getting-started)
-  * [Prerequisites](#prerequisites)
-  * [Installation](#installation)
+
+* [Prerequisites](#prerequisites)
+* [Installation](#installation)
+* [Run the bot](#run-the-bot)
+* [Usage](#usage)
 * [License](#license)
-* [Contact](#contact)
 * [Acknowledgements](#acknowledgements)
 
-## About The Project
 
-Videos hosted on the social media platform www.reddit.com are nearly impossible to download, especially with sound. To make sharing easier, I decided to write my own bot that provides an easy way to download them. 
-
-
-## Getting Started
-
-To host your own video download bot, follow these simple example steps.
-    
-
-### Prerequisites
+## Prerequisites
 
 * Python3
-* A Reddit Account
+* A reddit account
+* Docker
   
 
-### Installation
+## Installation
 
 
 * Clone the repo
@@ -38,28 +29,30 @@ To host your own video download bot, follow these simple example steps.
     
 * Create a reddit app
 * Fill in the credentials in a [praw.ini file](https://praw.readthedocs.io/en/latest/getting_started/configuration/prawini.html)
-* Fill in the bot configuration in [config.yaml](config.yaml)
+* Fill in the bot configuration in [config.yaml](shared/config.yaml)
 * Install the requirements
 
       pip install -r requirements.txt
 
+## Run the bot
+
+**Start:** ```bash start.sh```  
+**Stop:** ```bash stop.sh```
+
+You can scale each service by editing the ```start.sh``` script
+
+## Usage
+
+Mention the bot's name as a comment or send it a private message with the post link
 
 ## License
 
 Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
 
 
-## Contact
-
-johannes.pertl@edu.fh-joanneum.at
-
-
 ## Acknowledgements
 
 Special thanks to the owner of **www.reddit.tube** who very kindly lets me use their service! 
-
-* [Praw](https://praw.readthedocs.io/en/latest)
-* [Readme Template](https://github.com/othneildrew/Best-README-Template/blob/master/README.md#acknowledgements)
 
 
 

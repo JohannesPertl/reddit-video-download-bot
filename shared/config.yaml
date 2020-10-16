@@ -1,0 +1,37 @@
+---
+BOT_NAME: 'BOT_NAME'
+USER_AGENT: 'REDDIT_USER_AGENT'
+NO_FOOTER_SUBS:
+  - 'SUBREDDIT_TO_POST_WITHOUT_FOOTER'
+PM_SUBS:
+  - 'SUBREDDIT_TO_SEND_PM_INSTEAD_OF_COMMENT'
+BLACKLIST_SUBS:
+  - 'SUB_TO_BLACKLIST'
+BLACKLIST_USERS:
+  - 'USER_TO_BLACKLIST'
+- NO_EMOJI_SUBS:
+  - 'NO_EMOJI_SUBREDDIT'
+BLACKLIST_SUBMISSION_AUTHORS:
+  - 'POST_AUTHOR_TO_IGNORE'
+PM_SUBJECT: "I couldn't reply to your comment so you get a PM instead :)"
+HEADER: "*beep. boop.* 🤖 I'm a bot that helps downloading videos!\n\n"
+DOWNLOAD_TEXT: "Download"
+ANNOUNCEMENT_COMMENT: "\n\nIf I don't reply to a comment, you can also send me the link [per message.](https://np.reddit.com/message/compose?to=BOT_NAME&subject=Download&message=Put%20your%20reddit%20video%20link%20here%20and%20click%20send%20)"
+ANNOUNCEMENT_PM: "\n\nIt would be **really** nice of you if you could include the download link in your comment, so that other people don't have to call me :) Thank you!"
+NSFW_WARNING: "#--- NSFW ---\n\n"
+HEADER_BLACKLISTED: "I'm sorry, the original poster doesn't allow downloading their videos :(  \n"
+INFO_LINK: "[Info](https://np.reddit.com/user/BOT_NAME)"
+CONTACT_LINK: "[Contact](https://np.reddit.com/message/compose?to=BOT_NAME)"
+REDIS_REQUESTS: 'requests'
+REDIS_REQUESTS_FILTER: 'requests:filter'
+REDIS_REQUESTS_LOCKED: 'requests:locked'
+REDIS_REQUESTS_UPLOAD: 'requests:upload'
+REDIS_REQUESTS_REPLY: 'requests:reply'
+REDIS_REQUESTS_SUCCESS: 'requests:success'
+REDIS_REQUESTS_FAILED: 'requests:failed'
+REDIS_SUBMISSIONS: 'submissions'
+REDIS_BANNED_SUBS: 'subreddits:banned'
+REDIS_AUTOMODERATOR_SUBS: 'subreddits:automoderator'
+REDIS_USERS: 'users'
+REDIS_NOT_WHITELISTED_USERS: 'users:not-whitelisted'
+

@@ -1,5 +1,0 @@
-prawcore
-certifi
-requests
-praw
-PyYAML
