@@ -50,7 +50,7 @@ Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
 
 ## Acknowledgements
 
-Special thanks to the owner of **www.reddit.tube** who very kindly lets me use their service! 
+Special thanks to the owner of www.reddit.tube who very kindly lets me use their service! 
 
 
 
