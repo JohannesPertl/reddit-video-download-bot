@@ -25,14 +25,12 @@
 
 * Clone the repo
 
-      git clone https://github.com/JohannesPertl/vreddit-download-bot.git
+      git clone https://github.com/JohannesPertl/reddit-video-download-bot.git
     
-* Create a reddit app
+* Create a [reddit app](https://ssl.reddit.com/prefs/apps/)
 * Fill in the credentials in a [praw.ini file](https://praw.readthedocs.io/en/latest/getting_started/configuration/prawini.html)
+located in the shared folder
 * Fill in the bot configuration in [config.yaml](shared/config.yaml)
-* Install the requirements
-
-      pip install -r requirements.txt
 
 ## Run the bot
 
