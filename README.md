@@ -48,9 +48,4 @@ Mention the bot's name as a comment or send it a private message with the post l
 Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
 
 
-## Acknowledgements
-
-Special thanks to the owner of www.reddit.tube who very kindly provided his service
-
-
 
