@@ -1,5 +1,6 @@
 <h1 align=center>Video Download Bot for reddit</h1>
 <p align=center>A bot for reddit that provides downloadable links for videos by using an external service</p>
+<p align=center>Formerly u/VredditDownloader</p>
 
 
 ## Table of Contents
@@ -10,7 +11,6 @@
 * [Run the bot](#run-the-bot)
 * [Usage](#usage)
 * [License](#license)
-* [Acknowledgements](#acknowledgements)
 
 
 ## Prerequisites
